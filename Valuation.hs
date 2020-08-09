@@ -19,7 +19,7 @@ type Fraction = Double
 -- Valuation
 --
 valuation :: (Set o,AttrValence a) => Obj o a -> Val o a
-valuation xs = addAllAttributesVal (\x -> (fromJust.lookup x) xs') (map fst xs') newDim
+valuation xs = addAllAttributesVal (\x -> (fromJust.lookup x) xs') (map fst xs') objects
   where
     xs' = f xs
     os =  nub.map fst.concatMap snd $ xs'
@@ -56,11 +56,11 @@ normalize c as = let s = sum [v | (_,v) <- as]
 
 type Val o a = Obj o a
 
-class (Ord a,Ord b,Ord o) => ExtendVal o a b c d | a b c -> d where 
-  extend :: Val o a -> Obj b c -> Val o d 
+class (Ord a,Ord b,Ord o) => ExtendVal o a b c d | a b c -> d where
+  extend :: Val o a -> Obj b c -> Val o d
 
 
-mkVal :: (Ord b,Ord o,Ord o) => [(o,(b,Double))] -> Val o b 
+mkVal :: (Ord b,Ord o,Ord o) => [(o,(b,Double))] -> Val o b
 mkVal = mkObj.map f.groupBy h.sortBy (compare `on` fst)
   where
     f ls = (fst.head $ ls,mkAttr.map snd $ ls)
@@ -68,12 +68,12 @@ mkVal = mkObj.map f.groupBy h.sortBy (compare `on` fst)
     h = \x y -> fst x == fst y
 
 instance (Set a,AttrValence a,AttrValence b,Ord o) => ExtendVal o a a b (b,a) where
-  extend as bs = mkVal [(o,((cc,aa),av*cv)) | (o,a) <- fromObj as, (aa,av) <- fromAttr a, 
-                        (b,c) <- (fromObj.valuation) bs, (cc,cv) <- fromAttr c, aa==b] 
+  extend as bs = mkVal [(o,((cc,aa),av*cv)) | (o,a) <- fromObj as, (aa,av) <- fromAttr a,
+                        (b,c) <- (fromObj.valuation) bs, (cc,cv) <- fromAttr c, aa==b]
 
 instance (Set a,AttrValence c,AttrValence b,Ord o,Ord a) => ExtendVal o (a,b) a c (c,a,b) where
-  extend as bs = mkVal [(o,((cc,a1,a2),av*cv)) | (o,a) <- fromObj as,((a1,a2),av) <- fromAttr a, 
-                        (b,c) <- (fromObj.valuation) bs,(cc,cv) <- fromAttr c, a1==b] 
+  extend as bs = mkVal [(o,((cc,a1,a2),av*cv)) | (o,a) <- fromObj as,((a1,a2),av) <- fromAttr a,
+                        (b,c) <- (fromObj.valuation) bs,(cc,cv) <- fromAttr c, a1==b]
 
 {-
 addAlternative :: (Ord o,Ord a) => o -> (a -> Double) -> Obj o a -> Obj o a

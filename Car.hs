@@ -4,16 +4,16 @@ module Car where
 import Attribute
 import Object
 import Valuation
-import MDS 
+import MDS
 
-import qualified Data.Map as M 
+import qualified Data.Map as M
 
 -- Car Example
 --
 data User    = Friend | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Car     = Honda | BMW | Toyota deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Feature = Price | Fuel | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
-data Weight = Weight deriving (Eq,Ord,Show,Enum,Bounded,Set)
+data Weight  = Weight deriving (Eq,Ord,Show,Enum,Bounded,Set)
 
 
 instance AttrValence Feature where
@@ -21,54 +21,76 @@ instance AttrValence Feature where
    valence Fuel   = Pos
    valence Safety = Pos
 
-instance AttrValence User  
-
-instance AttrValence Weight 
-
-cars :: [Car]
-cars = [Honda,BMW]
-
-o0 :: Obj Car Feature
-o0 = newDim
-
-o1 :: Obj Car Feature
-o1 = addAttribute Price [Honda --> 36000,BMW --> 24000] o0
-
-o2 :: Obj Car Feature
-o2 = addAttribute Safety [Honda --> 30,BMW --> 70] o1
-
-o3 :: Obj Car Feature
-o3 = addAttribute Fuel [Honda --> 36,BMW --> 24] o2
-
-features :: Feature -> Spread Car
-features x = case x of
-                      Price  -> [Honda --> 36000,BMW --> 24000]
-                      Safety -> [Honda --> 30,BMW --> 70]
-                      Fuel   -> [Honda --> 36,BMW --> 24]
-
-o3' :: Obj Car Feature
-o3' = addDim features
-
-v3 :: Obj Car Feature
-v3 = valuation o3
+instance AttrValence User
+instance AttrValence Weight
 
 
+-- (1) collecting car features
+--
+featuresP :: Obj Car Feature
+featuresP = addAttribute Price [Honda --> 36000,BMW --> 24000] objects
+
+featuresS :: Obj Car Feature
+featuresS = addAttribute Safety [Honda --> 30,BMW --> 70] featuresP
+
+featuresF :: Obj Car Feature
+featuresF = addAttribute Fuel [Honda --> 36,BMW --> 24] featuresS
+
+-- Alternative: doing it in one step
+--
+featureInfo :: Feature -> Spread Car
+featureInfo x = case x of Price  -> [Honda --> 36000,BMW --> 24000]
+                          Safety -> [Honda --> 30,BMW --> 70]
+                          Fuel   -> [Honda --> 36,BMW --> 24]
+
+features :: Obj Car Feature
+features = gather featureInfo
+
+
+-- (2) creating a valuation from data
+--
+carsF :: Val Car Feature
+carsF = valuation features
+
+
+-- (3) Some variation: adding/deleting/modifying a feature attribute
+--
 toyotaAttributes :: Feature -> Double
 toyotaAttributes x = case x of
         Price  -> 20000
         Safety -> 50
         Fuel   -> 30
 
-o4 = addAlternative Toyota toyotaAttributes o3'
+features2 :: Obj Car Feature
+features2 = addAlternative Toyota toyotaAttributes features
+features3 = delAttribute features Price
+features4 = modAttribute features Price Honda 45000
 
-v4 :: Obj Car Feature
-v4 = valuation o4
+-- (4) Adding dimensions to car features (users and weights)
+--
+userInfo :: User -> Spread Feature
+userInfo x = case x of Friend -> [Price --> 0.5, Fuel --> 0.3, Safety --> 0.2]
+                       Expert -> [Price --> 0.2, Fuel --> 0.4, Safety --> 0.4]
 
-o5 = delAttribute o4 Price
+users :: Obj Feature User
+users = gather userInfo
 
-o6 = modAttribute o5 Price Honda 45000
+weights :: Obj User Weight
+weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 
+-- (5) Creating valuations for extended data
+--
+-- carsUF :: Val Car (User,Feature)
+-- carsUF = extend carsF users
+--
+-- carsWUF :: Val Car (Weight,User,Feature)
+-- carsWUF = extend carsUF weights
 
+carsVal :: Val Car (Weight,User,Feature)
+carsVal = carsF `extend` users `extend` weights
+
+-- to be removed ...
+--
 traceCar = mkObj [(Honda,mkAttr [((Weight,Friend,Price),0.180),((Weight,Friend,Fuel),0.108),((Weight,Friend,Safety),0.036),
                                  ((Weight,Expert,Price),0.048),((Weight,Expert,Fuel),0.096),((Weight,Expert,Safety),0.048)
                                 ]),
@@ -80,43 +102,21 @@ traceCar = mkObj [(Honda,mkAttr [((Weight,Friend,Price),0.180),((Weight,Friend,F
 -- ======================= FILTERING ELEMENTS FROM ANNOTATED VALUES ===========================
 -- ============================================================================================
 
-type CarDecomp = Attr (Weight,User,Feature)  
+type CarDecomp = Attr (Weight,User,Feature)
 
--- filter the trace component for bmw 
+-- filter the valuation for specific cars
+
 honda :: CarDecomp
-honda = select Honda traceCar
+honda = select Honda carsVal
 
--- filter the trace component for bmw 
 bmw :: CarDecomp
-bmw = select BMW traceCar
+bmw = select BMW carsVal
 
-vdCar :: CarDecomp 
-vdCar = diff honda bmw 
+vdCar :: CarDecomp
+vdCar = diff honda bmw
 
-exp1 :: Explain User 
+exp1 :: Explain User
 exp1 = generalize vdCar
 
-exp2 :: Explain Feature 
+exp2 :: Explain Feature
 exp2 = generalize vdCar
-
-a0 :: Obj Feature User 
-a0 = newDim
-
-a1 :: Obj Feature User
-a1 = addAttribute Friend [Price --> 0.5, Fuel --> 0.3, Safety --> 0.2] a0
-
-a2 :: Obj Feature User
-a2 = addAttribute Expert [Price --> 0.2, Fuel --> 0.4, Safety --> 0.4] a1
-
-b1 :: Val Car (User,Feature)
-b1 = extend v3 a2 
-
-c0 :: Obj User Weight
-c0 = newDim
-
-
-c1 :: Obj User Weight 
-c1 = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] c0 
-
-b2 :: Val Car (Weight,User,Feature)
-b2 = extend b1 c1

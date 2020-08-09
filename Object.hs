@@ -25,24 +25,24 @@ instance (Show o,Show a) => Show (Obj o a) where
             in "{" ++ intercalate ",\n " ts' ++ "}\n"
 
 
--- newDim :: (Ord a,Ord o) => [o] -> Obj o a
--- newDim os = mkObj [(o,noAttributes) | o <- os]
+-- objects :: (Ord a,Ord o) => [o] -> Obj o a
+-- objects os = mkObj [(o,noAttributes) | o <- os]
 
-newDim :: (Set o,Ord a) => Obj o a
-newDim = mkObj [(o,noAttributes) | o <- members]
+objects :: (Set o,Ord a) => Obj o a
+objects = mkObj [(o,noAttributes) | o <- members]
 
 addAttribute :: (Ord o,Ord a) => a -> Spread o -> Obj o a -> Obj o a
 addAttribute c as bs = mkObj [(b,f c av bv) | (a,av) <- as,(b,bv) <- fromObj bs,a == b]
     where f x xv ys = Attr $ M.insert x xv (unAttr ys)
 
--- addDim :: (Ord a,Ord o) => (a -> Spread o) -> [a] ->  [o] -> Obj o a
--- addDim f as os = foldl (\o a -> addAttribute a (f a) o) (newDim os) as
+-- gather :: (Ord a,Ord o) => (a -> Spread o) -> [a] ->  [o] -> Obj o a
+-- gather f as os = foldl (\o a -> addAttribute a (f a) o) (objects os) as
 --
--- addDim :: (Set o,Ord a) => (a -> Spread o) -> [a] -> Obj o a
--- addDim f as = foldl (\o a -> addAttribute a (f a) o) newDim as
+-- gather :: (Set o,Ord a) => (a -> Spread o) -> [a] -> Obj o a
+-- gather f as = foldl (\o a -> addAttribute a (f a) o) objects as
 
-addDim :: (Set o,Set a) => (a -> Spread o) -> Obj o a
-addDim f = foldl (\o a -> addAttribute a (f a) o) newDim members
+gather :: (Set o,Set a) => (a -> Spread o) -> Obj o a
+gather f = foldl (\o a -> addAttribute a (f a) o) objects members
 
 addAlternative :: (Ord o,Ord a) => o -> (a -> Double) -> Obj o a -> Obj o a
 addAlternative o f vs = Obj $ M.insert o (mkAttr ls) (unObj vs)
@@ -67,6 +67,3 @@ modAttribute os a o' v = let f a o v ov = (o,Attr $ M.insert a v (M.delete a (un
 -- a function for removing a dimension
 delDim :: (Ord a,Ord o) => Obj o a -> [a] -> Obj o a
 delDim = foldl delAttribute
-
-
-
