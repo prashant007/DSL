@@ -39,7 +39,7 @@ featuresF = addAttribute Fuel [Honda --> 36,BMW --> 24] featuresS
 -- Alternative: doing it in one step
 --
 featureInfo :: Feature -> Spread Car
-featureInfo x = case x of Price  -> [Honda --> 36000,BMW --> 24000]
+featureInfo x = case x of Price  -> [Honda --> 24000,BMW --> 36000]
                           Safety -> [Honda --> 30,BMW --> 70]
                           Fuel   -> [Honda --> 36,BMW --> 24]
 
