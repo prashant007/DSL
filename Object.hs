@@ -1,3 +1,5 @@
+{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances #-}
+
 module Object where
 
 import qualified Data.Map.Strict as M
@@ -65,3 +67,6 @@ modAttribute os a o' v = let f a o v ov = (o,Attr $ M.insert a v (M.delete a (un
 -- a function for removing a dimension
 delDim :: (Ord a,Ord o) => Obj o a -> [a] -> Obj o a
 delDim = foldl delAttribute
+
+
+

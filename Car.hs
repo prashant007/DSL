@@ -6,18 +6,24 @@ import Object
 import Valuation
 import MDS 
 
+import qualified Data.Map as M 
+
 -- Car Example
 --
-data User    = Friend | Expert deriving (Eq,Ord,Show)
+data User    = Friend | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Car     = Honda | BMW | Toyota deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Feature = Price | Fuel | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
-data Weight = Weight deriving (Eq,Ord,Show)
+data Weight = Weight deriving (Eq,Ord,Show,Enum,Bounded,Set)
+
 
 instance AttrValence Feature where
    valence Price  = Neg
    valence Fuel   = Pos
    valence Safety = Pos
 
+instance AttrValence User  
+
+instance AttrValence Weight 
 
 cars :: [Car]
 cars = [Honda,BMW]
@@ -93,4 +99,24 @@ exp1 = generalize vdCar
 exp2 :: Explain Feature 
 exp2 = generalize vdCar
 
--- o7 = delDimension o3 [Fuel,Price,Safety]
+a0 :: Obj Feature User 
+a0 = newDim
+
+a1 :: Obj Feature User
+a1 = addAttribute Friend [Price --> 0.5, Fuel --> 0.3, Safety --> 0.2] a0
+
+a2 :: Obj Feature User
+a2 = addAttribute Expert [Price --> 0.2, Fuel --> 0.4, Safety --> 0.4] a1
+
+b1 :: Val Car (User,Feature)
+b1 = extend v3 a2 
+
+c0 :: Obj User Weight
+c0 = newDim
+
+
+c1 :: Obj User Weight 
+c1 = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] c0 
+
+b2 :: Val Car (Weight,User,Feature)
+b2 = extend b1 c1

@@ -55,3 +55,4 @@ type Spread o = [(o,Double)]
 
 noAttributes :: Ord a => Attr a
 noAttributes = mkAttr []
+
