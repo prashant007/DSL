@@ -115,8 +115,15 @@ bmw = select BMW carsVal
 vdCar :: CarDecomp
 vdCar = diff honda bmw
 
+exp0 :: Explain (Weight,User,Feature) 
+exp0 = explain vdCar
+
+showMDSexp0 = pmds exp0
+showDomexp0 = pdom exp0
+
 exp1 :: Explain User
 exp1 = generalize vdCar
 
 exp2 :: Explain Feature
 exp2 = generalize vdCar
+
