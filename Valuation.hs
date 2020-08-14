@@ -8,6 +8,7 @@ import Data.Function (on)
 import Data.List
 import Text.Printf
 import Data.Maybe
+import Data.Tuple.OneTuple(only,OneTuple)
 
 import Attribute
 import Object
@@ -56,24 +57,29 @@ normalize c as = let s = sum [v | (_,v) <- as]
 
 type Val o a = Obj o a
 
-class (Ord a,Ord b,Ord o) => ExtendVal o a b c d | a b c -> d where
-  extend :: Val o a -> Obj b c -> Val o d
-
-
-mkVal :: (Ord b,Ord o,Ord o) => [(o,(b,Double))] -> Val o b
+mkVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
 mkVal = mkObj.map f.groupBy h.sortBy (compare `on` fst)
   where
     f ls = (fst.head $ ls,mkAttr.map snd $ ls)
     h :: Eq a => (a,b) -> (a,c) -> Bool
     h = \x y -> fst x == fst y
 
-instance (Set a,AttrValence a,AttrValence b,Ord o) => ExtendVal o a a b (b,a) where
-  extend as bs = mkVal [(o,((cc,aa),av*cv)) | (o,a) <- fromObj as, (aa,av) <- fromAttr a,
-                        (b,c) <- (fromObj.valuation) bs, (cc,cv) <- fromAttr c, aa==b]
+class (Projector a b,Ord d,Ord o,Set b,AttrValence c) => ExtendVal o a b c d | a b c -> d where
+  mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double)) 
 
-instance (Set a,AttrValence c,AttrValence b,Ord o,Ord a) => ExtendVal o (a,b) a c (c,a,b) where
-  extend as bs = mkVal [(o,((cc,a1,a2),av*cv)) | (o,a) <- fromObj as,((a1,a2),av) <- fromAttr a,
-                        (b,c) <- (fromObj.valuation) bs,(cc,cv) <- fromAttr c, a1==b]
+  extend :: Val o a -> Obj b c -> Val o d
+  extend as bs = mkVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromObj as, (aa,av) <- fromAttr a,
+                        (b,c) <- (fromObj.valuation) bs, (cc,cv) <- fromAttr c, proj aa==b]
+
+instance (Set a,AttrValence b,Ord o) => ExtendVal o (OneTuple a) a b (b,a) where
+  mkTuple o (a,_,b) n = (o,((b,only a),n))
+
+instance (Set a,AttrValence c,Ord o,Ord b) => ExtendVal o (a,b) a c (c,a,b) where
+  mkTuple o ((a,b),_,c) n = (o,((c,a,b),n))
+
+instance (Set a,AttrValence d,Ord o,Ord b,Ord c) => ExtendVal o (a,b,c) a d (d,a,b,c) where
+  mkTuple o ((a,b,c),_,d) n = (o,((d,a,b,c),n))
+
 
 {-
 addAlternative :: (Ord o,Ord a) => o -> (a -> Double) -> Obj o a -> Obj o a

@@ -1,4 +1,4 @@
-{-# LANGUAGE  DeriveAnyClass #-}
+{-# LANGUAGE  DeriveAnyClass,MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,InstanceSigs #-}
 module Car where
 
 import Attribute
@@ -89,16 +89,6 @@ weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 carsVal :: Val Car (Weight,User,Feature)
 carsVal = carsF `extend` users `extend` weights
 
--- to be removed ...
---
-traceCar = mkObj [(Honda,mkAttr [((Weight,Friend,Price),0.180),((Weight,Friend,Fuel),0.108),((Weight,Friend,Safety),0.036),
-                                 ((Weight,Expert,Price),0.048),((Weight,Expert,Fuel),0.096),((Weight,Expert,Safety),0.048)
-                                ]),
-                  (BMW,mkAttr [((Weight,Friend,Price),0.120),((Weight,Friend,Fuel),0.072),((Weight,Friend,Safety),0.084),
-                               ((Weight,Expert,Price),0.032),((Weight,Expert,Fuel),0.064),((Weight,Expert,Safety),0.112)
-                              ])
-                 ]
-
 -- ======================= FILTERING ELEMENTS FROM ANNOTATED VALUES ===========================
 -- ============================================================================================
 
@@ -126,4 +116,14 @@ exp1 = generalize vdCar
 
 exp2 :: Explain Feature
 exp2 = generalize vdCar
+
+mds0 = mkAttr [((Friend,Fuel),0.036),((Friend,Price),0.060),((Expert,Fuel),0.032)]
+mds1 = mkAttr [((Weight,Friend,Fuel),0.036),((Weight,Friend,Price),0.060),((Weight,Expert,Fuel),0.032)]
+mds2 = mkAttr [((Friend,Safety),-0.048),((Expert,Safety),-0.064)]
+
+m01 = factorize mds0 :: Factor Feature User
+m02 = factorize mds0 :: Factor User Feature
+m11 = factorize mds1 :: Factor Weight (User,Feature)
+
+
 
