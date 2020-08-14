@@ -1,10 +1,12 @@
-{-# LANGUAGE  DeriveAnyClass,MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,InstanceSigs #-}
+{-# LANGUAGE  DeriveAnyClass #-}
 module Car where
 
 import Attribute
 import Object
 import Valuation
 import MDS
+import Transformation
+import Data.Tuple.OneTuple
 
 import qualified Data.Map as M
 
@@ -87,7 +89,7 @@ weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 -- carsWUF = extend carsUF weights
 
 carsVal :: Val Car (Weight,User,Feature)
-carsVal = carsF `extend` users `extend` weights
+carsVal = (mkOneTuple carsF) `extend` users `extend` weights
 
 -- ======================= FILTERING ELEMENTS FROM ANNOTATED VALUES ===========================
 -- ============================================================================================

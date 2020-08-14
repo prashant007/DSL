@@ -1,3 +1,14 @@
+{-# LANGUAGE  DeriveAnyClass #-}
+module Election where
+
+import Attribute
+import Object
+import Valuation
+import MDS
+import Transformation
+
+import qualified Data.Map as M
+
 -- =============================================================================
 -- ====================== ELECTION EXAMPLE =====================================
 

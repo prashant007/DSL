@@ -8,7 +8,7 @@ import Data.Function (on)
 import Data.List
 import Text.Printf
 import Data.Maybe
-import Data.Tuple.OneTuple(only,OneTuple)
+import Data.Tuple.OneTuple
 
 import Attribute
 import Object
@@ -63,6 +63,12 @@ mkVal = mkObj.map f.groupBy h.sortBy (compare `on` fst)
     f ls = (fst.head $ ls,mkAttr.map snd $ ls)
     h :: Eq a => (a,b) -> (a,c) -> Bool
     h = \x y -> fst x == fst y
+
+
+mkOneTuple :: (Ord o,Ord a) => Obj o a -> Obj o (OneTuple a)
+mkOneTuple = mkObj.map (\(o,a) -> (o,f a)).fromObj
+  where
+    f = mkAttr.map (\(b,n) -> (OneTuple b,n)).fromAttr
 
 class (Projector a b,Ord d,Ord o,Set b,AttrValence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double)) 
