@@ -8,7 +8,7 @@ import Data.Function (on)
 import Data.List
 import Text.Printf
 import Data.Maybe
-import Data.Tuple.OneTuple(only,OneTuple)
+import Data.Tuple.OneTuple (only,OneTuple(..))
 
 import Attribute
 import Object
@@ -20,10 +20,10 @@ type Fraction = Double
 -- Valuation
 --
 valuation :: (Set o,AttrValence a) => Obj o a -> Val o a
-valuation xs = addAllAttributesVal (\x -> (fromJust.lookup x) xs') (map fst xs') objects
+valuation o = addAllAttributesVal (\x -> (fromJust.lookup x) xs) (map fst xs) objects
   where
-    xs' = f xs
-    os =  nub.map fst.concatMap snd $ xs'
+    xs = f o
+    os =  nub.map fst.concatMap snd $ xs
 
     l :: AttrValence a => (a,Spread o) -> (a,Spread o)
     l (x,y) = (x,normalize x y)
@@ -39,6 +39,9 @@ valuation xs = addAllAttributesVal (\x -> (fromJust.lookup x) xs') (map fst xs')
 
     f :: (Eq a,AttrValence a,Ord a) => Obj o a -> [(a,Spread o)]
     f = map (l.k) .groupBy h. sortBy (compare `on` fst). concatMap g.fromObj
+
+val :: (Set o,AttrValence a) => Obj o a -> Val o (OneTuple a)
+val = mkOneTuple . valuation
 
 addAllAttributesVal :: (Ord a,Ord o) => (a -> Spread o) -> [a] -> Obj o a -> Obj o a
 addAllAttributesVal f cs bs = foldl (\b c -> addAttributeVal c (f c) b) bs cs
@@ -65,11 +68,14 @@ mkVal = mkObj.map f.groupBy h.sortBy (compare `on` fst)
     h = \x y -> fst x == fst y
 
 class (Projector a b,Ord d,Ord o,Set b,AttrValence c) => ExtendVal o a b c d | a b c -> d where
-  mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double)) 
+  mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
 
   extend :: Val o a -> Obj b c -> Val o d
   extend as bs = mkVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromObj as, (aa,av) <- fromAttr a,
                         (b,c) <- (fromObj.valuation) bs, (cc,cv) <- fromAttr c, proj aa==b]
+
+  refine :: Obj b c -> Val o a -> Val o d
+  refine = flip extend
 
 instance (Set a,AttrValence b,Ord o) => ExtendVal o (OneTuple a) a b (b,a) where
   mkTuple o (a,_,b) n = (o,((b,only a),n))
@@ -80,6 +86,10 @@ instance (Set a,AttrValence c,Ord o,Ord b) => ExtendVal o (a,b) a c (c,a,b) wher
 instance (Set a,AttrValence d,Ord o,Ord b,Ord c) => ExtendVal o (a,b,c) a d (d,a,b,c) where
   mkTuple o ((a,b,c),_,d) n = (o,((d,a,b,c),n))
 
+mkOneTuple :: (Ord o,Ord a) => Obj o a -> Obj o (OneTuple a)
+mkOneTuple = mkObj.map (\(o,a) -> (o,f a)).fromObj
+  where
+    f = mkAttr.map (\(b,n) -> (OneTuple b,n)).fromAttr
 
 {-
 addAlternative :: (Ord o,Ord a) => o -> (a -> Double) -> Obj o a -> Obj o a

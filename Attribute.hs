@@ -7,7 +7,7 @@ import Data.Map.Merge.Strict
 import Data.Function (on)
 import Data.List
 import Text.Printf
-import Data.Tuple.OneTuple(only,OneTuple)
+import Data.Tuple.OneTuple (only,OneTuple)
 
 class (Bounded a,Enum a,Ord a) => Set a where
   members :: [a]
@@ -64,35 +64,35 @@ noAttributes = mkAttr []
 -- Projector type class projects an element from a tuple
 
 class Projector a b | a -> b where
-  proj :: a -> b 
+  proj :: a -> b
 
 
 instance Projector (OneTuple a) a where
-  proj = only 
+  proj = only
 
 instance Projector (a,b) a where
-  proj = fst      
+  proj = fst
 
 instance Projector (a,b) b where
   proj = snd
 
 instance Projector (a,b,c) a where
-  proj (a,b,c) = a  
+  proj (a,b,c) = a
 
 instance Projector (a,b,c) b where
-  proj (a,b,c) = b  
+  proj (a,b,c) = b
 
 instance Projector (a,b,c) c where
-  proj (a,b,c) = c  
+  proj (a,b,c) = c
 
 instance Projector (a,b,c,d) a where
-  proj (a,b,c,d) = a  
+  proj (a,b,c,d) = a
 
 instance Projector (a,b,c,d) b where
-  proj (a,b,c,d) = b  
+  proj (a,b,c,d) = b
 
 instance Projector (a,b,c,d) c where
-  proj (a,b,c,d) = c  
+  proj (a,b,c,d) = c
 
 instance Projector (a,b,c,d) d where
-  proj (a,b,c,d) = d  
+  proj (a,b,c,d) = d

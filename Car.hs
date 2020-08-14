@@ -1,12 +1,15 @@
 {-# LANGUAGE  DeriveAnyClass,MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,InstanceSigs #-}
 module Car where
 
+import qualified Data.Map as M
+
 import Attribute
 import Object
 import Valuation
 import MDS
+import Transformation
+import Data.Tuple.OneTuple (only,OneTuple)
 
-import qualified Data.Map as M
 
 -- Car Example
 --
@@ -14,7 +17,6 @@ data User    = Friend | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Car     = Honda | BMW | Toyota deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Feature = Price | Fuel | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Weight  = Weight deriving (Eq,Ord,Show,Enum,Bounded,Set)
-
 
 instance AttrValence Feature where
    valence Price  = Neg
@@ -25,7 +27,7 @@ instance AttrValence User
 instance AttrValence Weight
 
 
--- (1) collecting car features
+-- (1) Collecting car features
 --
 featuresP :: Obj Car Feature
 featuresP = addAttribute Price [Honda --> 36000,BMW --> 24000] objects
@@ -47,7 +49,7 @@ features :: Obj Car Feature
 features = gather featureInfo
 
 
--- (2) creating a valuation from data
+-- (2) creating a valuation from data (only for features)
 --
 carsF :: Val Car Feature
 carsF = valuation features
@@ -66,6 +68,7 @@ features2 = addAlternative Toyota toyotaAttributes features
 features3 = delAttribute features Price
 features4 = modAttribute features Price Honda 45000
 
+
 -- (4) Adding dimensions to car features (users and weights)
 --
 userInfo :: User -> Spread Feature
@@ -78,6 +81,7 @@ users = gather userInfo
 weights :: Obj User Weight
 weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 
+
 -- (5) Creating valuations for extended data
 --
 -- carsUF :: Val Car (User,Feature)
@@ -86,26 +90,28 @@ weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 -- carsWUF :: Val Car (Weight,User,Feature)
 -- carsWUF = extend carsUF weights
 
-carsVal :: Val Car (Weight,User,Feature)
-carsVal = carsF `extend` users `extend` weights
+cars :: Val Car (Weight,User,Feature)
+-- cars = carsF `extend` users `extend` weights
+-- cars = val features `extend` users `extend` weights
+cars = weights `refine` (users `refine` val features)
 
--- ======================= FILTERING ELEMENTS FROM ANNOTATED VALUES ===========================
--- ============================================================================================
 
+-- (6) Explaining decisions
+--
 type CarDecomp = Attr (Weight,User,Feature)
 
--- filter the valuation for specific cars
-
+-- Valuations for specific cars
+--
 honda :: CarDecomp
-honda = select Honda carsVal
+honda = select Honda cars
 
 bmw :: CarDecomp
-bmw = select BMW carsVal
+bmw = select BMW cars
 
 vdCar :: CarDecomp
 vdCar = diff honda bmw
 
-exp0 :: Explain (Weight,User,Feature) 
+exp0 :: Explain (Weight,User,Feature)
 exp0 = explain vdCar
 
 showMDSexp0 = pmds exp0
@@ -124,6 +130,3 @@ mds2 = mkAttr [((Friend,Safety),-0.048),((Expert,Safety),-0.064)]
 m01 = factorize mds0 :: Factor Feature User
 m02 = factorize mds0 :: Factor User Feature
 m11 = factorize mds1 :: Factor Weight (User,Feature)
-
-
-
