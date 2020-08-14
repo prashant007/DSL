@@ -1,4 +1,4 @@
-{-# LANGUAGE  DeriveAnyClass,MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,InstanceSigs #-}
+{-# LANGUAGE  DeriveAnyClass #-}
 module Car where
 
 import qualified Data.Map as M
@@ -90,10 +90,8 @@ weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 -- carsWUF :: Val Car (Weight,User,Feature)
 -- carsWUF = extend carsUF weights
 
-cars :: Val Car (Weight,User,Feature)
--- cars = carsF `extend` users `extend` weights
--- cars = val features `extend` users `extend` weights
-cars = weights `refine` (users `refine` val features)
+carsVal :: Val Car (Weight,User,Feature)
+carsVal = (mkOneTuple carsF) `extend` users `extend` weights
 
 
 -- (6) Explaining decisions
@@ -130,3 +128,7 @@ mds2 = mkAttr [((Friend,Safety),-0.048),((Expert,Safety),-0.064)]
 m01 = factorize mds0 :: Factor Feature User
 m02 = factorize mds0 :: Factor User Feature
 m11 = factorize mds1 :: Factor Weight (User,Feature)
+
+pm01 = pFact m01
+pm02 = pFact m02
+pm11 = pFact m11

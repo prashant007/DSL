@@ -67,6 +67,12 @@ mkVal = mkObj.map f.groupBy h.sortBy (compare `on` fst)
     h :: Eq a => (a,b) -> (a,c) -> Bool
     h = \x y -> fst x == fst y
 
+
+mkOneTuple :: (Ord o,Ord a) => Obj o a -> Obj o (OneTuple a)
+mkOneTuple = mkObj.map (\(o,a) -> (o,f a)).fromObj
+  where
+    f = mkAttr.map (\(b,n) -> (OneTuple b,n)).fromAttr
+
 class (Projector a b,Ord d,Ord o,Set b,AttrValence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
 
