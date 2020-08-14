@@ -16,13 +16,14 @@ data Geography = Rural | Urban deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Demography = Young | MiddleAged | Old deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Policy = Education | Economic | Foreign | Health deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Candidate = Clinton | Trump deriving (Eq,Ord,Show,Enum,Bounded,Set)
-
+data Weight  = Weight deriving (Eq,Ord,Show,Enum,Bounded,Set)
 
 instance AttrValence Geography
 instance AttrValence Demography
 instance AttrValence Policy
+instance AttrValence Weight
 
--- Alternative: doing it in one step
+-- Doing it in one step
 --
 policyInfo :: Policy -> Spread Candidate
 policyInfo x = case x of Education-> [Clinton --> 30,Trump --> 70]
@@ -61,7 +62,7 @@ weightsE :: Val Geography Weight
 weightsE = addAttribute Weight [Rural --> 0.6,Urban --> 0.4] objects
 
 candidateVal :: Val Candidate (Weight,Geography,Demography,Policy)
-candidateVal = policiesV `extend` demographyV `extend` geographyV `extend` weightsE
+candidateVal = (mkOneTuple policiesV) `extend` demographyV `extend` geographyV `extend` weightsE
 
 type CandidateDecomp = Attr (Weight,Geography,Demography,Policy)
 
