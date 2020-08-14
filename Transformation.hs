@@ -140,8 +140,11 @@ class (SumOut a b,Reduce a c,Projector a b) => GroupBy a b c | a -> b c where
             f = proj.fst 
 
 
-pFact :: Factor a b -> IO ()
-pFact = undefined 
+pFact :: (Show a,Show b) => Factor a b -> IO ()
+pFact = mapM_ pFactH 
+  where
+    pFactH (b,a,v) = putStrLn $ show b ++ " : " ++ show v ++ " (" ++ show a ++ ") \n"
+
 
 instance Ord a => GroupBy (a,b) a b  
 instance Ord b => GroupBy (a,b) b a 

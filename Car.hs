@@ -128,4 +128,7 @@ m02 = factorize mds0 :: Factor User Feature
 m11 = factorize mds1 :: Factor Weight (User,Feature)
 
 
+pm01 = pFact m01 
+pm02 = pFact m02 
+pm11 = pFact m11
 
