@@ -92,11 +92,6 @@ instance (Set a,AttrValence c,Ord o,Ord b) => ExtendVal o (a,b) a c (c,a,b) wher
 instance (Set a,AttrValence d,Ord o,Ord b,Ord c) => ExtendVal o (a,b,c) a d (d,a,b,c) where
   mkTuple o ((a,b,c),_,d) n = (o,((d,a,b,c),n))
 
-mkOneTuple :: (Ord o,Ord a) => Obj o a -> Obj o (OneTuple a)
-mkOneTuple = mkObj.map (\(o,a) -> (o,f a)).fromObj
-  where
-    f = mkAttr.map (\(b,n) -> (OneTuple b,n)).fromAttr
-
 {-
 addAlternative :: (Ord o,Ord a) => o -> (a -> Double) -> Obj o a -> Obj o a
 addAlternative o f vs = Obj $ M.insert o (mkAttr ls) (unObj vs)

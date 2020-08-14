@@ -90,8 +90,8 @@ weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 -- carsWUF :: Val Car (Weight,User,Feature)
 -- carsWUF = extend carsUF weights
 
-carsVal :: Val Car (Weight,User,Feature)
-carsVal = (mkOneTuple carsF) `extend` users `extend` weights
+cars :: Val Car (Weight,User,Feature)
+cars = (mkOneTuple carsF) `extend` users `extend` weights
 
 
 -- (6) Explaining decisions
