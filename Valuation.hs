@@ -52,10 +52,12 @@ addAttributeVal c as bs = mkObj [(b,f c av bv) | (a,av) <- as,(b,bv) <- bs',a ==
           bs' = fromObj bs
 
 normalize :: AttrValence a => a -> Spread o -> Spread o
-normalize c as = let s = sum [v | (_,v) <- as]
+normalize c as = let vs = [v | (_,v) <- as]
+                     s = sum vs
+                     s' = sum.map (\x -> 1/x) $ vs 
                  in case valence c of
                       Pos -> [(a,v/s) | (a,v) <- as]
-                      Neg -> [(a,1-v/s) | (a,v) <- as]
+                      Neg -> [(a,(1/v)/s') | (a,v) <- as]
 
 
 type Val o a = Obj o a

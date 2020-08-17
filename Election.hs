@@ -46,7 +46,7 @@ demography :: Obj Policy Demography
 demography = gather demographyInfo
 
 demographyV :: Val Policy Demography
-demographyV =  valuation demography
+demographyV = valuation demography
 
 geographyInfo :: Geography -> Spread Demography 
 geographyInfo x = case x of Rural -> [Young --> 30,MiddleAged --> 30,Old --> 40]
