@@ -19,6 +19,7 @@ type MDS a = Attr a
 type Dom a = Attr a 
 type Explain b = (ValDiff b,Support b,Barrier b,[Dom b],[MDS b])
 
+
 explain :: Ord a => ValDiff a -> Explain a  
 explain v = (v,mkAttr support,mkAttr barrier, map mkAttr ls,
              map mkAttr $ reverse $ sortBy (compare `on` f) ls') 

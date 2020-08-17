@@ -61,10 +61,10 @@ geographyV = valuation geography
 weightsE :: Val Geography Weight
 weightsE = addAttribute Weight [Rural --> 0.6,Urban --> 0.4] objects
 
-candidateVal :: Val Candidate (Weight,Geography,Demography,Policy)
-candidateVal = (mkOneTuple policiesV) `extend` demographyV `extend` geographyV `extend` weightsE
+candidateVal :: Val Candidate (Policy,Demography,Geography,Weight)
+candidateVal = val policiesV `extendBy` demographyV `extendBy` geographyV `extendBy` weightsE
 
-type CandidateDecomp = Attr (Weight,Geography,Demography,Policy)
+type CandidateDecomp = Attr (Policy,Demography,Geography,Weight)
 
 trump :: CandidateDecomp
 trump = select Trump candidateVal
@@ -72,21 +72,21 @@ trump = select Trump candidateVal
 clinton :: CandidateDecomp
 clinton = select Clinton candidateVal
 
-c11 = factorize trump :: Factor Weight (Geography,Demography,Policy)
-c12 = factorize clinton :: Factor Weight (Geography,Demography,Policy)
+c11 = factorize trump :: Factor Weight (Policy,Demography,Geography)
+c12 = factorize clinton :: Factor Weight (Policy,Demography,Geography)
 
-vdCandidate :: Attr (Geography,Demography,Policy)
+vdCandidate :: Attr (Policy,Demography,Geography)
 vdCandidate = denoise $ diff trump clinton
 
-(c2a,c2b,c2c,c2d,c2e) = explain vdCandidate :: Explain (Geography,Demography,Policy)
+(c2a,c2b,c2c,c2d,c2e) = explain vdCandidate :: Explain (Policy,Demography,Geography)
 
-c21 :: Factor Geography (Demography,Policy)
+c21 :: Factor Geography (Policy,Demography)
 c21 = factorize c2c 
 
-c22 :: Factor Demography (Geography,Policy)
+c22 :: Factor Demography (Policy,Geography)
 c22 = factorize c2c 
 
-c23 :: Factor Policy (Geography,Demography)
+c23 :: Factor Policy (Demography,Geography)
 c23 = factorize c2c 
 
 -- c24 :: Factor (Policy,Geography) Demography

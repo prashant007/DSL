@@ -65,7 +65,9 @@ toyotaAttributes x = case x of
 
 features2 :: Obj Car Feature
 features2 = addAlternative Toyota toyotaAttributes features
+
 features3 = delAttribute features Price
+
 features4 = modAttribute features Price Honda 45000
 
 
@@ -90,13 +92,18 @@ weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 -- carsWUF :: Val Car (Weight,User,Feature)
 -- carsWUF = extend carsUF weights
 
-cars :: Val Car (Weight,User,Feature)
-cars = (mkOneTuple carsF) `extend` users `extend` weights
+cars :: Val Car (Feature,User,Weight)
+cars = val features `extendBy` users `extendBy` weights
 
+carPriority :: Priority Car 
+carPriority = priority cars
+
+-- ======================= FILTERING ELEMENTS FROM ANNOTATED VALUES ===========================
+-- ============================================================================================
 
 -- (6) Explaining decisions
 --
-type CarDecomp = Attr (Weight,User,Feature)
+type CarDecomp = Attr (Feature,User,Weight)
 
 -- Valuations for specific cars
 --
@@ -109,7 +116,7 @@ bmw = select BMW cars
 vdCar :: CarDecomp
 vdCar = diff honda bmw
 
-exp0 :: Explain (Weight,User,Feature)
+exp0 :: Explain (Feature,User,Weight)
 exp0 = explain vdCar
 
 showMDSexp0 = pmds exp0
@@ -121,14 +128,12 @@ exp1 = generalize vdCar
 exp2 :: Explain Feature
 exp2 = generalize vdCar
 
-mds0 = mkAttr [((Friend,Fuel),0.036),((Friend,Price),0.060),((Expert,Fuel),0.032)]
-mds1 = mkAttr [((Weight,Friend,Fuel),0.036),((Weight,Friend,Price),0.060),((Weight,Expert,Fuel),0.032)]
-mds2 = mkAttr [((Friend,Safety),-0.048),((Expert,Safety),-0.064)]
+mds0 :: MDS (Feature,User)
+mds0 = let (_,_,_,ms,_) = exp0
+       in  denoise (head ms)::Attr (Feature,User)
 
-m01 = factorize mds0 :: Factor Feature User
-m02 = factorize mds0 :: Factor User Feature
-m11 = factorize mds1 :: Factor Weight (User,Feature)
+m01 = pFact (factorize mds0 :: Factor Feature User)
+m02 = pFact (factorize mds0 :: Factor User Feature)
+-- m11 = factorize mds1 :: Factor Weight (User,Feature)
 
-pm01 = pFact m01
-pm02 = pFact m02
-pm11 = pFact m11
+

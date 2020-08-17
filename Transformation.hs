@@ -21,7 +21,7 @@ import Attribute
 -- terms of one level at a time. 
 
 class (Ord a,Ord b,SumOut a b) => Generalize a b | a -> b where
-    generalize :: Attr a -> Explain b
+    generalize :: ValDiff a -> Explain b
     generalize = explain.sumOut
 
 instance (Ord a,Ord b) => Generalize (a,b) a 
@@ -143,7 +143,7 @@ class (SumOut a b,Reduce a c,Projector a b) => GroupBy a b c | a -> b c where
 pFact :: (Show a,Show b) => Factor a b -> IO ()
 pFact = mapM_ pFactH 
   where
-    pFactH (b,a,v) = putStrLn $ show b ++ " : " ++ show v ++ " (" ++ show a ++ ") \n"
+    pFactH (b,a,v) = putStrLn $ show b ++ " : " ++ printf "%.3f" v ++ " (" ++ show a ++ ") \n"
 
 
 instance Ord a => GroupBy (a,b) a b  

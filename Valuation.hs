@@ -76,21 +76,27 @@ mkOneTuple = mkObj.map (\(o,a) -> (o,f a)).fromObj
 class (Projector a b,Ord d,Ord o,Set b,AttrValence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
 
-  extend :: Val o a -> Obj b c -> Val o d
-  extend as bs = mkVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromObj as, (aa,av) <- fromAttr a,
+  extendBy :: Val o a -> Obj b c -> Val o d
+  extendBy as bs = mkVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromObj as, (aa,av) <- fromAttr a,
                         (b,c) <- (fromObj.valuation) bs, (cc,cv) <- fromAttr c, proj aa==b]
 
-  refine :: Obj b c -> Val o a -> Val o d
-  refine = flip extend
+instance (Set a,AttrValence b,Ord o) => ExtendVal o (OneTuple a) a b (a,b) where
+  mkTuple o (a,_,b) n = (o,((only a,b),n))
 
-instance (Set a,AttrValence b,Ord o) => ExtendVal o (OneTuple a) a b (b,a) where
-  mkTuple o (a,_,b) n = (o,((b,only a),n))
+instance (Set b,AttrValence c,Ord o,Ord a) => ExtendVal o (a,b) b c (a,b,c) where
+  mkTuple o ((a,b),_,c) n = (o,((a,b,c),n))
 
-instance (Set a,AttrValence c,Ord o,Ord b) => ExtendVal o (a,b) a c (c,a,b) where
-  mkTuple o ((a,b),_,c) n = (o,((c,a,b),n))
+instance (Set c,AttrValence d,Ord o,Ord a,Ord b) => ExtendVal o (a,b,c) c d (a,b,c,d) where
+  mkTuple o ((a,b,c),_,d) n = (o,((a,b,c,d),n))
 
-instance (Set a,AttrValence d,Ord o,Ord b,Ord c) => ExtendVal o (a,b,c) a d (d,a,b,c) where
-  mkTuple o ((a,b,c),_,d) n = (o,((d,a,b,c),n))
+type Priority o = [(o,Fraction)]
+
+priority :: Obj o a -> Priority o
+priority = map (\(o,a) -> (o,f a)).fromObj
+  where
+    f = sum.map snd.fromAttr
+
+-- car,feature, feature user 
 
 {-
 addAlternative :: (Ord o,Ord a) => o -> (a -> Double) -> Obj o a -> Obj o a
