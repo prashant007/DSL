@@ -1,4 +1,4 @@
-{-# LANGUAGE  DeriveAnyClass #-}
+{-# LANGUAGE  DeriveAnyClass,MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances #-}
 module Election where
 
 import Attribute
@@ -93,4 +93,82 @@ c23 = factorize c2c
 -- c24 = factorize c2c 
 
 expC1 :: Explain Demography 
-expC1 = generalize vdCandidate
+expC1 = generalize vdCandidate 
+
+
+-- [(Rural,Young,Education),(Rural,Young,Economic),(Rural,Young,Foreign),(Rural,Young,Health),
+-- (Rural,MiddleAged,Education),(Rural,MiddleAged,Economic),(Rural,MiddleAged,Foreign),
+-- (Rural,MiddleAged,Health),(Rural,Old,Education),(Rural,Old,Economic),
+-- (Rural,Old,Foreign),(Rural,Old,Health),(Urban,Young,Education),(Urban,Young,Economic),(Urban,Young,Foreign),
+-- (Urban,Young,Health),(Urban,MiddleAged,Education),(Urban,MiddleAged,Economic),(Urban,MiddleAged,Foreign),(Urban,MiddleAged,Health),
+-- (Urban,Old,Education),(Urban,Old,Economic),(Urban,Old,Foreign),(Urban,Old,Health)]
+
+
+elems :: [(Geography,Demography,Policy) ] 
+elems = [(g,d,p) | g <- members, d <- members, p <- members]
+
+
+totalInfo :: Candidate -> Attr (Geography,Demography,Policy)
+totalInfo x = case x of Trump   -> f [100,200,110,120,140,130,200,210,220,125,220,175,
+                                     115,145,132,269,155,489,122,45,56,89,110,150]
+                        Clinton -> f [225,220,100,225,130,245,155,160,180,270,170,90,
+                                     40,220,115,120,80,90,70,65,114,145,147,189] 
+    where
+        elems = [(g,d,p) | g <- members, d <- members, p <- members] 
+        f :: [Double] -> Attr (Geography,Demography,Policy)
+        f = mkAttr.zipWith (\x y -> x --> y) elems  
+
+
+policyInfo :: Obj Candidate Policy 
+policyInfo = undefined 
+
+demographyInfo :: Obj Policy Demography
+demographyInfo = undefined 
+
+geographyInfo :: Obj Demography Geography
+geographyInfo = undefined 
+
+
+
+
+ -- Obj Candidate Policy 
+ -- Obj Policy Demography
+ -- Obj Demography Geography
+ -- Obj Geography Weight            
+
+
+-- {Trump ->
+-- {Education -> ,
+--  Economic -> 0.200,
+--  Foregin ->,
+--  Health -> },
+--  Fuel ->
+-- {Clinton ->  
+-- {Education -> ,
+--  Economic -> 0.200,
+--  Foregin ->,
+--  Health -> }}
+
+
+
+-- featureInfo :: Feature -> Spread Car
+-- featureInfo x = case x of Price  -> [Honda --> 24000,BMW --> 36000]
+--                           Safety -> [Honda --> 30,BMW --> 70]
+--                           Fuel   -> [Honda --> 36,BMW --> 24]
+
+-- features :: Obj Car Feature
+-- features = gather featureInfo
+
+
+-- userInfo :: User -> Spread Feature
+-- userInfo x = case x of Friend -> [Price --> 0.5, Fuel --> 0.3, Safety --> 0.2]
+--                        Expert -> [Price --> 0.2, Fuel --> 0.4, Safety --> 0.4]
+
+-- users :: Obj Feature User
+-- users = gather userInfo
+
+-- weights :: Obj User Weight
+-- weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
+
+-- users :: Obj Candidate (Geography,Demography,Policy)
+-- users = gather userInfo

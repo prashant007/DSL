@@ -56,7 +56,7 @@ normalize c as = let vs = [v | (_,v) <- as]
                      s = sum vs
                      s' = sum.map (\x -> 1/x) $ vs 
                  in case valence c of
-                      Pos -> [(a,v/s) | (a,v) <- as]
+                      Pos -> [(a,v/(sum vs)) | (a,v) <- as]
                       Neg -> [(a,(1/v)/s') | (a,v) <- as]
 
 

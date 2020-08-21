@@ -9,6 +9,7 @@ import Data.List
 
 import MDS
 import Attribute
+import Object 
 -- ================== GENERALIZE ==========================================
 -- ========================================================================
 
@@ -57,7 +58,6 @@ class (Projector a b,Ord b) => SumOut a b | a -> b where
         g x y = f x == f y
         f = proj.fst
 
-
 instance Ord b => SumOut (a,b) b 
 instance Ord a => SumOut (a,b) a 
 instance Ord a => SumOut (a,b,c) a  
@@ -68,6 +68,29 @@ instance Ord b => SumOut (a,b,c,d) b
 instance Ord c => SumOut (a,b,c,d) c  
 instance Ord d => SumOut (a,b,c,d) d  
 
+
+class (Ord o,Ord b) => Object a o b | a -> o b where
+    getPair :: a -> (o,b)
+
+    crtObj :: Attr a -> Obj o b 
+    crtObj = mkObj.l.map h.groupBy g.sortBy (compare `on` f).fromAttr
+        where l = map l2.groupBy l1  
+              l1 x y = fst x == fst y
+              l2 x = (fst.head $ x,mkAttr.map snd $ x)
+              h x = (h' fst x,(h' snd x,sum.map snd $ x))
+              h' k x = k.f.head $ x   
+              g x y = f x == f y
+              f = getPair.fst 
+
+
+instance (Ord a,Ord b) => Object (a,b,c,d) a b where
+  getPair (a,b,c,d) = (a,b)
+
+instance (Ord b,Ord c) => Object (a,b,c,d) b c where
+  getPair (a,b,c,d) = (b,c)
+
+instance (Ord c,Ord d) => Object (a,b,c,d) c d where
+  getPair (a,b,c,d) = (c,d)
 
 -- ===================== REDUCE =============================================
 -- ==========================================================================

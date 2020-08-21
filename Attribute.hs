@@ -13,6 +13,7 @@ class (Bounded a,Enum a,Ord a) => Set a where
   members :: [a]
   members = enumFromTo minBound maxBound
 
+
 -- Used to represent beneficial or non-beneficial attributes
 --
 data Valence = Pos | Neg
