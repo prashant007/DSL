@@ -43,6 +43,10 @@ valuation o = addAllAttributesVal (\x -> (fromJust.lookup x) xs) (map fst xs) ob
 val :: (Set o,AttrValence a) => Obj o a -> Val o (OneTuple a)
 val = mkOneTuple . valuation
 
+
+val' :: (Set o,Set a,AttrValence a) => (a -> Spread o)  -> Val o (OneTuple a)
+val' = (val.gather)
+
 addAllAttributesVal :: (Ord a,Ord o) => (a -> Spread o) -> [a] -> Obj o a -> Obj o a
 addAllAttributesVal f cs bs = foldl (\b c -> addAttributeVal c (f c) b) bs cs
 
@@ -75,20 +79,23 @@ mkOneTuple = mkObj.map (\(o,a) -> (o,f a)).fromObj
   where
     f = mkAttr.map (\(b,n) -> (OneTuple b,n)).fromAttr
 
-class (Projector a b,Ord d,Ord o,Set b,AttrValence c) => ExtendVal o a b c d | a b c -> d where
+class (Projector a b,Ord d,Ord o,Set b,Set c,AttrValence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
+
+  extend :: Val o a -> (c -> Spread b) -> Val o d 
+  extend as f = extendBy as (gather f)
 
   extendBy :: Val o a -> Obj b c -> Val o d
   extendBy as bs = mkVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromObj as, (aa,av) <- fromAttr a,
                         (b,c) <- (fromObj.valuation) bs, (cc,cv) <- fromAttr c, proj aa==b]
 
-instance (Set a,AttrValence b,Ord o) => ExtendVal o (OneTuple a) a b (a,b) where
+instance (Set a,Set b,AttrValence b,Ord o) => ExtendVal o (OneTuple a) a b (a,b) where
   mkTuple o (a,_,b) n = (o,((only a,b),n))
 
-instance (Set b,AttrValence c,Ord o,Ord a) => ExtendVal o (a,b) b c (a,b,c) where
+instance (Set b,Set c,AttrValence c,Ord o,Ord a) => ExtendVal o (a,b) b c (a,b,c) where
   mkTuple o ((a,b),_,c) n = (o,((a,b,c),n))
 
-instance (Set c,AttrValence d,Ord o,Ord a,Ord b) => ExtendVal o (a,b,c) c d (a,b,c,d) where
+instance (Set c,Set d,AttrValence d,Ord o,Ord a,Ord b) => ExtendVal o (a,b,c) c d (a,b,c,d) where
   mkTuple o ((a,b,c),_,d) n = (o,((a,b,c,d),n))
 
 type Priority o = [(o,Fraction)]
