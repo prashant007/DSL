@@ -26,13 +26,19 @@ instance AttrValence Population
 -- Doing it in one step
 --
 policyInfo :: Policy -> Spread Candidate
-policyInfo x = case x of Environment-> [Clinton --> 135,Trump --> 55] 
-                         Economic -> [Clinton --> 90,Trump --> 220]
-                         Foreign  -> [Clinton --> 90,Trump --> 220]  
-                         Health   -> [Clinton --> 135,Trump --> 55]
+policyInfo x = case x of Environment-> [Clinton --> 180,Trump --> 45] 
+                         Economic -> [Clinton --> 55,Trump --> 220]
+                         Foreign  -> [Clinton --> 35,Trump --> 140]  
+                         Health   -> [Clinton --> 195,Trump --> 130]
 
 policies :: Obj Candidate Policy
 policies = gather policyInfo
+
+
+-- - Every demography expressed what policies are important to them.
+-- Young voters (300 in number) - 1/3 of youth voters plan to vote based on a candidates education policy, 1/6  each for economic and foregin policy,
+-- and the remaining 1/3 for Health policy. 
+
 
 demographyInfo :: Demography -> Spread Policy
 demographyInfo x = case x of Young -> [Environment --> 100,Economic --> 50,Foreign --> 50,Health --> 100]
@@ -70,34 +76,43 @@ trump = select Trump candidates
 clinton :: CandidateDecomp
 clinton = select Clinton candidates
 
+candPriority :: Priority Candidate 
+candPriority = priority candidates
+
+expCandidate :: Explain (Policy,Demography,Geography)
+expCandidate = explain vdCandidate
+
 c11 = factorize trump :: Factor Population (Policy,Demography,Geography)
 c12 = factorize clinton :: Factor Population (Policy,Demography,Geography)
 
 vdCandidate :: Attr (Policy,Demography,Geography)
-vdCandidate = denoise $ diff trump clinton
+vdCandidate = reduce $ diff trump clinton
 
-(c2a,c2b,c2c,c2d,c2e) = explain vdCandidate :: Explain (Policy,Demography,Geography)
+expDemography :: Explain Demography 
+expDemography = generalize vdCandidate 
 
-c21 :: Factor Geography (Policy,Demography)
-c21 = factorize c2c 
+expGeography :: Explain Geography
+expGeography = generalize vdCandidate 
 
-c22 :: Factor Demography (Policy,Geography)
-c22 = factorize c2c 
-
-c23 :: Factor Policy (Demography,Geography)
-c23 = factorize c2c 
-
--- c24 :: Factor (Policy,Geography) Demography
--- c24 = factorize c2c 
-
-expC1 :: Explain Demography 
-expC1 = generalize vdCandidate 
-
-expC2 :: Explain Geography
-expC2 = generalize vdCandidate 
-
-expC3 :: Explain Policy
-expC3 = generalize vdCandidate 
+expPolicy :: Explain Policy
+expPolicy = generalize vdCandidate 
 
 
+(_,support,barrier,mdss,_) = expCandidate
+
+mdsC = head mdss :: Attr (Policy,Demography,Geography)
+
+
+fact1 = pFact (factorize mdsC :: Factor Policy (Demography,Geography))
+fact2 = pFact (factorize mdsC :: Factor Demography (Policy,Geography))
+fact3 = pFact (factorize mdsC :: Factor Geography (Policy,Demography))
+
+geographyTrump = pFact (factorize support :: Factor Geography (Policy,Demography))
+geographyClinton = pFact (factorize barrier :: Factor Geography (Policy,Demography))
+
+demographyTrump = pFact (factorize support :: Factor Demography (Policy,Geography))
+demographyClinton = pFact (factorize barrier :: Factor Demography (Policy,Geography))
+
+policyTrump = pFact (factorize support :: Factor Policy (Demography,Geography))
+policyClinton = pFact (factorize barrier :: Factor Policy (Demography,Geography))
 

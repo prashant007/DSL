@@ -30,20 +30,20 @@ instance AttrValence Weight
 -- (1) Collecting car features
 --
 featuresP :: Obj Car Feature
-featuresP = addAttribute Price [Honda --> 36000,BMW --> 24000] objects
+featuresP = addAttribute Price [Honda --> c1P,BMW --> c2P] objects
 
 featuresS :: Obj Car Feature
-featuresS = addAttribute Safety [Honda --> 30,BMW --> 70] featuresP
+featuresS = addAttribute Safety [Honda --> c1S,BMW --> c2S] featuresP
 
 featuresF :: Obj Car Feature
-featuresF = addAttribute Fuel [Honda --> 36,BMW --> 24] featuresS
+featuresF = addAttribute Fuel [Honda --> c1M,BMW --> c2M] featuresS
 
 -- Alternative: doing it in one step
 --
 featureInfo :: Feature -> Spread Car
-featureInfo x = case x of Price  -> [Honda --> 24000,BMW --> 36000]
-                          Safety -> [Honda --> 30,BMW --> 70]
-                          Fuel   -> [Honda --> 36,BMW --> 24]
+featureInfo x = case x of Price  -> [Honda --> c1P,BMW --> c2P]
+                          Safety -> [Honda --> c1S,BMW --> c2S]
+                          Fuel   -> [Honda --> c1M,BMW --> c2M]
 
 features :: Obj Car Feature
 features = gather featureInfo
@@ -83,6 +83,13 @@ users = gather userInfo
 weights :: Obj User Weight
 weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 
+
+
+bAttr :: Attr Feature
+bAttr = mkAttr [Price --> 36000, Fuel --> 24, Safety --> 70]
+
+bObj :: Obj Car Feature 
+bObj = mkObj [BMW --> bAttr]
 
 -- (5) Creating valuations for extended data
 --
@@ -130,10 +137,13 @@ exp2 = generalize vdCar
 
 mds0 :: MDS (Feature,User)
 mds0 = let (_,_,_,ms,_) = exp0
-       in  denoise (head ms)::Attr (Feature,User)
+       in  reduce (head ms)::Attr (Feature,User)
 
 m01 = pFact (factorize mds0 :: Factor Feature User)
 m02 = pFact (factorize mds0 :: Factor User Feature)
 -- m11 = factorize mds1 :: Factor Weight (User,Feature)
 
 
+(c1N,c1P,c1M,c1S) = (Honda,34000,30,9.8)
+
+(c2N,c2P,c2M,c2S) = (BMW,36000,33,9.1)

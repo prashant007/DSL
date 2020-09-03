@@ -102,8 +102,8 @@ instance (Ord c,Ord d) => Object (a,b,c,d) c d where
 class Reduce a b | a -> b where
   rmv :: a -> b 
 
-  denoise :: (Ord a,Ord b) => Attr a -> Attr b 
-  denoise = mkAttr.map (\(x,n) -> (rmv x,n)).fromAttr
+  reduce :: (Ord a,Ord b) => Attr a -> Attr b 
+  reduce = mkAttr.map (\(x,n) -> (rmv x,n)).fromAttr
 
 instance Reduce (a,b) b where
   rmv :: (a,b) -> b 
@@ -156,7 +156,7 @@ type Factor b c = [(b,Attr c,Double)]
 
 class (SumOut a b,Reduce a c,Projector a b) => GroupBy a b c | a -> b c where 
   factorize :: (Ord a,Ord b,Ord c) => Attr a -> Factor b c
-  factorize xs = zipWith (\x y -> (fst x,denoise y,snd x)) (h xs) (k xs)
+  factorize xs = zipWith (\x y -> (fst x,reduce y,snd x)) (h xs) (k xs)
       where h = sort.fromAttr.sumOut
             k = map mkAttr.groupBy g.sortBy (compare `on` f).fromAttr 
             g x y = f x == f y
