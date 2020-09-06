@@ -21,16 +21,15 @@ type Explain b = (ValDiff b,Support b,Barrier b,[Dom b],[MDS b])
 
 
 explain :: Ord a => ValDiff a -> Explain a  
-explain v = (v,mkAttr support,mkAttr barrier, map mkAttr ls,
-             map mkAttr $ reverse $ sortBy (compare `on` f) ls') 
+explain v = (v,mkAttr support,mkAttr barrier,map mkAttr doms,map mkAttr mdss) 
   where
     d = map (\(x,y) -> (x,y)) (fromAttr v)  
-    (support,barrier) = partition (\(x,y) -> y>0) d 
+    (support,barrier) = partition (\x -> snd x>0) d 
     f = abs.sum.map snd  
+    g f' = sortBy (compare `on` f')
     btotal = f barrier
-    doms = [d | d <- subsequences support, f d > btotal]  
-    ls = sortBy (compare `on` length) doms
-    ls'= takeWhile (\p -> length p == (length.head) ls) ls
+    doms = g length $ [d | d <- subsequences support, f d > btotal]
+    mdss = (reverse.g f) $ takeWhile (\p -> length p == (length.head) doms) doms
 
 
 select :: Eq o => o -> Obj o a -> Attr a 

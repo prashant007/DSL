@@ -80,8 +80,14 @@ userInfo x = case x of Friend -> [Price --> 0.5, Fuel --> 0.3, Safety --> 0.2]
 users :: Obj Feature User
 users = gather userInfo
 
+weightsInfo :: Weight -> Spread User 
+weightsInfo Weight = [Friend --> 0.6,Expert --> 0.4]
+
 weights :: Obj User Weight
-weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
+weights = gather weightsInfo
+
+-- weights :: Obj User Weight
+-- weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 
 
 
@@ -122,9 +128,14 @@ bmw = select BMW cars
 
 vdCar :: CarDecomp
 vdCar = diff honda bmw
-
+  
 exp0 :: Explain (Feature,User,Weight)
 exp0 = explain vdCar
+
+
+explCar :: Explain (Feature,User,Weight)
+explCar = explain vdCar
+
 
 showMDSexp0 = pmds exp0
 showDomexp0 = pdom exp0
@@ -136,7 +147,7 @@ exp2 :: Explain Feature
 exp2 = generalize vdCar
 
 mds0 :: MDS (Feature,User)
-mds0 = let (_,_,_,ms,_) = exp0
+mds0 = let (_,_,_,_,ms) = exp0
        in  reduce (head ms)::Attr (Feature,User)
 
 m01 = pFact (factorize mds0 :: Factor Feature User)
