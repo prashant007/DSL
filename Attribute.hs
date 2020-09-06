@@ -39,14 +39,17 @@ mapAttr :: Ord a => (Double -> Double) -> Attr a -> Attr a
 mapAttr f =  mkAttr.map (\(x,y) -> (x,f y)).fromAttr
 
 
-instance (Set a,Ord a) => Num (Attr a) where
+class Default a where
+    defVal ::  a 
+
+instance (Default a,Ord a) => Num (Attr a) where
   (+) = onAttr (+) 
   (*) = onAttr (*) 
   (-) = onAttr (-) 
   negate = mapAttr negate
   abs    = mapAttr abs
   signum = mapAttr signum
-  fromInteger x = mkAttr [(head $ members,fromInteger x)]
+  fromInteger x = mkAttr [(defVal,fromInteger x)]
 
 -- Needed?
 --
