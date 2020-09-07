@@ -34,6 +34,18 @@ onRec :: Ord a => (Double -> Double -> Double) -> Rec a -> Rec a -> Rec a
 onRec g x y =  Rec $ merge preserveMissing preserveMissing
                        (zipWithMatched (\_->g)) (unRec x) (unRec y)
 
+mapRec :: Ord a => (Double -> Double) -> Rec a -> Rec a
+mapRec f =  mkRec.map (\(x,y) -> (x,f y)).fromRec
+
+instance Ord a => Num (Rec a) where
+  (+) = onRec (+)
+  (*) = onRec (*)
+  (-) = onRec (-)
+  negate = mapRec negate
+  abs    = mapRec abs
+  signum = mapRec signum
+  fromInteger x = undefined
+
 
 -- Needed?
 --
