@@ -1,95 +1,113 @@
-{-# LANGUAGE  DeriveAnyClass #-}
+{-# LANGUAGE  DeriveAnyClass, LambdaCase #-}
 module Car where
 
 import qualified Data.Map as M
+import Data.Tuple.OneTuple (only,OneTuple(..))
+import Prelude hiding (compare)
 
-import Attribute
-import Object
+import Record
+import Info
 import Valuation
 import MDS
 import Transformation
-import Data.Tuple.OneTuple (only,OneTuple)
 
 
 -- Car Example
 --
 data User    = Friend | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Car     = Honda | BMW | Toyota deriving (Eq,Ord,Show,Enum,Bounded,Set)
-data Feature = Price | Fuel | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
+data Feature = Price | MPG | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Weight  = Weight deriving (Eq,Ord,Show,Enum,Bounded,Set)
 
 instance AttrValence Feature where
    valence Price  = Neg
-   valence Fuel   = Pos
+   valence MPG    = Pos
    valence Safety = Pos
 
 instance AttrValence User
 instance AttrValence Weight
 
 
--- (1) Collecting car features
+-- (1) Mapping cars to features
 --
-featuresP :: Obj Car Feature
+
+{-
+-- Use this when exploring realistic values:
+--
+(c1N,c1P,c1M,c1S) = (Honda,34000,30,9.8)
+(c2N,c2P,c2M,c2S) = (BMW,36000,33,9.1)
+
+featuresP :: Info Car Feature
 featuresP = addAttribute Price [Honda --> c1P,BMW --> c2P] objects
 
-featuresS :: Obj Car Feature
+featuresS :: Info Car Feature
 featuresS = addAttribute Safety [Honda --> c1S,BMW --> c2S] featuresP
 
-featuresF :: Obj Car Feature
-featuresF = addAttribute Fuel [Honda --> c1M,BMW --> c2M] featuresS
+featuresF :: Info Car Feature
+featuresF = addAttribute MPG  [Honda --> c1M,BMW --> c2M] featuresS
 
 -- Alternative: doing it in one step
 --
-featureInfo :: Feature -> Spread Car
-featureInfo x = case x of Price  -> [Honda --> c1P,BMW --> c2P]
-                          Safety -> [Honda --> c1S,BMW --> c2S]
-                          Fuel   -> [Honda --> c1M,BMW --> c2M]
+features :: Feature -> Spread Car
+features = \case Price  -> [Honda --> c1P,BMW --> c2P]
+                 Safety -> [Honda --> c1S,BMW --> c2S]
+                 MPG    -> [Honda --> c1M,BMW --> c2M]
+-}
 
-features :: Obj Car Feature
-features = gather featureInfo
+-- values :: Feature -> Spread Car
+values :: Feature -> [(Car,Double)]
+values Price  = [Honda --> 34000, BMW --> 36000]
+values MPG    = [Honda --> 30,    BMW --> 33]
+values Safety = [Honda --> 9.8,   BMW --> 9.1]
 
+carsF :: Info Car Feature
+-- carsF = gather values
+carsF = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
+              BMW   --> [Price --> 36000, MPG --> 33, Safety --> 9.1]]
 
 -- (2) creating a valuation from data (only for features)
 --
-carsF :: Val Car Feature
-carsF = valuation features
+carsN :: Val Car Feature
+carsN = valuation carsF
+
+compare :: (Eq o,Ord a) => Info o a -> o -> o -> Rec a
+compare m o1 o2 = select o1 m `diff` select o2 m
 
 
 -- (3) Some variation: adding/deleting/modifying a feature attribute
 --
-toyotaAttributes :: Feature -> Double
-toyotaAttributes x = case x of
-        Price  -> 20000
-        Safety -> 50
-        Fuel   -> 30
+toyota :: Feature -> Double
+toyota Price  = 20000
+toyota Safety = 50
+toyota MPG    = 30
 
-features2 :: Obj Car Feature
-features2 = addAlternative Toyota toyotaAttributes features
+features2 :: Info Car Feature
+features2 = addAlternative Toyota toyota carsF
 
-features3 = delAttribute features Price
+features3 = delAttribute carsF Price
 
-features4 = modAttribute features Price Honda 45000
+features4 = modAttribute carsF Price Honda 45000
 
 
 -- (4) Adding dimensions to car features (users and weights)
 --
 userInfo :: User -> Spread Feature
-userInfo x = case x of Friend -> [Price --> 0.5, Fuel --> 0.3, Safety --> 0.2]
-                       Expert -> [Price --> 0.2, Fuel --> 0.4, Safety --> 0.4]
+userInfo x = case x of Friend -> [Price --> 0.5, MPG  --> 0.3, Safety --> 0.2]
+                       Expert -> [Price --> 0.2, MPG  --> 0.4, Safety --> 0.4]
 
-users :: Obj Feature User
+users :: Info Feature User
 users = gather userInfo
 
-weights :: Obj User Weight
+weights :: Info User Weight
 weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
 
 
 
-bAttr :: Attr Feature
-bAttr = mkAttr [Price --> 36000, Fuel --> 24, Safety --> 70]
+bRec :: Rec Feature
+bRec = mkRec [Price --> 36000, MPG  --> 24, Safety --> 70]
 
-bObj :: Obj Car Feature 
-bObj = mkObj [BMW --> bAttr]
+bInfo :: Info Car Feature
+bInfo = mkInfo [BMW --> bRec]
 
 -- (5) Creating valuations for extended data
 --
@@ -100,9 +118,10 @@ bObj = mkObj [BMW --> bAttr]
 -- carsWUF = extend carsUF weights
 
 cars :: Val Car (Feature,User,Weight)
-cars = val features `extendBy` users `extendBy` weights
+-- cars = val carsF `extendBy` users `extendBy` weights
+cars = mkOneTuple carsN `extendBy` users `extendBy` weights
 
-carPriority :: Priority Car 
+carPriority :: Priority Car
 carPriority = priority cars
 
 -- ======================= FILTERING ELEMENTS FROM ANNOTATED VALUES ===========================
@@ -110,18 +129,18 @@ carPriority = priority cars
 
 -- (6) Explaining decisions
 --
-type CarDecomp = Attr (Feature,User,Weight)
+type CarDecomp = Rec (Feature,User,Weight)
 
 -- Valuations for specific cars
 --
-honda :: CarDecomp
-honda = select Honda cars
-
-bmw :: CarDecomp
-bmw = select BMW cars
-
+-- honda :: CarDecomp
+-- honda = select Honda cars
+--
+-- bmw :: CarDecomp
+-- bmw = select BMW cars
+--
 vdCar :: CarDecomp
-vdCar = diff honda bmw
+vdCar = select Honda cars `diff` select BMW cars
 
 exp0 :: Explain (Feature,User,Weight)
 exp0 = explain vdCar
@@ -137,13 +156,8 @@ exp2 = generalize vdCar
 
 mds0 :: MDS (Feature,User)
 mds0 = let (_,_,_,ms,_) = exp0
-       in  reduce (head ms)::Attr (Feature,User)
+       in  reduce (head ms)::Rec (Feature,User)
 
 m01 = pFact (factorize mds0 :: Factor Feature User)
 m02 = pFact (factorize mds0 :: Factor User Feature)
 -- m11 = factorize mds1 :: Factor Weight (User,Feature)
-
-
-(c1N,c1P,c1M,c1S) = (Honda,34000,30,9.8)
-
-(c2N,c2P,c2M,c2S) = (BMW,36000,33,9.1)

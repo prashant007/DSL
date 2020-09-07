@@ -22,35 +22,35 @@ class Ord a => AttrValence a where
    valence :: a -> Valence
    valence _ = Pos
 
-data Attr a = Attr {unAttr :: M.Map a Double}
+data Rec a = Rec {unRec :: M.Map a Double}
 
-mkAttr :: Ord a => [(a,Double)] -> Attr a
-mkAttr = Attr . M.fromList
+mkRec :: Ord a => [(a,Double)] -> Rec a
+mkRec = Rec . M.fromList
 
-fromAttr :: Attr a -> [(a,Double)]
-fromAttr = M.toList . unAttr
+fromRec :: Rec a -> [(a,Double)]
+fromRec = M.toList . unRec
 
-onAttr :: Ord a => (Double -> Double -> Double) -> Attr a -> Attr a -> Attr a
-onAttr g x y =  Attr $ merge preserveMissing preserveMissing
-                       (zipWithMatched (\_->g)) (unAttr x) (unAttr y)
+onRec :: Ord a => (Double -> Double -> Double) -> Rec a -> Rec a -> Rec a
+onRec g x y =  Rec $ merge preserveMissing preserveMissing
+                       (zipWithMatched (\_->g)) (unRec x) (unRec y)
 
 
 -- Needed?
 --
 {-
-add :: Ord a => Attr a -> Attr a -> Attr a
-add = onAttr (+)
+add :: Ord a => Rec a -> Rec a -> Rec a
+add = onRec (+)
 -}
 
-diff :: Ord a => Attr a -> Attr a -> Attr a
-diff = onAttr (-)
+diff :: Ord a => Rec a -> Rec a -> Rec a
+diff = onRec (-)
 
-total :: Ord a => Attr a -> Double
-total = M.foldr (+) 0 . unAttr
+total :: Ord a => Rec a -> Double
+total = M.foldr (+) 0 . unRec
 
 
-instance Show a => Show (Attr a) where
-  show ts = let ts' = map (\(x,y) -> show x ++ " -> " ++ printf "%.3f" y) (fromAttr ts)
+instance Show a => Show (Rec a) where
+  show ts = let ts' = map (\(x,y) -> show x ++ " -> " ++ printf "%.3f" y) (fromRec ts)
             in "{" ++ intercalate ",\n " ts' ++ "}"
 
 (-->) :: a -> v -> (a,v)
@@ -60,8 +60,8 @@ x --> y = (x,y)
 --
 type Spread o = [(o,Double)]
 
-noRecords :: Ord a => Attr a
-noRecords = mkAttr []
+emptyRec :: Ord a => Rec a
+emptyRec = mkRec []
 
 -- ========================== PROJECTOR =====================================
 -- ==========================================================================
