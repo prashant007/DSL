@@ -35,6 +35,22 @@ onAttr g x y =  Attr $ merge preserveMissing preserveMissing
                        (zipWithMatched (\_->g)) (unAttr x) (unAttr y)
 
 
+mapAttr :: Ord a => (Double -> Double) -> Attr a -> Attr a 
+mapAttr f =  mkAttr.map (\(x,y) -> (x,f y)).fromAttr
+
+
+-- class Default a where
+--     defVal ::  a 
+
+instance Ord a => Num (Attr a) where
+  (+) = onAttr (+) 
+  (*) = onAttr (*) 
+  (-) = onAttr (-) 
+  negate = mapAttr negate
+  abs    = mapAttr abs
+  signum = mapAttr signum
+  fromInteger x = undefined  --mkAttr [(defVal,fromInteger x)]
+
 -- Needed?
 --
 {-

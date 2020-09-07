@@ -145,6 +145,11 @@ vdCar = select Honda cars `diff` select BMW cars
 exp0 :: Explain (Feature,User,Weight)
 exp0 = explain vdCar
 
+
+explCar :: Explain (Feature,User,Weight)
+explCar = explain vdCar
+
+
 showMDSexp0 = pmds exp0
 showDomexp0 = pdom exp0
 
