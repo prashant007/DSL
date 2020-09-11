@@ -4,7 +4,6 @@ import Data.Function
 import qualified Data.Map as M
 import Text.Printf
 import Data.List
-import Data.Maybe(fromJust)
 
 import Record
 import Info
@@ -32,9 +31,6 @@ explain v = (v,mkRec support,mkRec barrier, map mkRec ls,
     ls = sortBy (compare `on` length) doms
     ls'= takeWhile (\p -> length p == (length.head) ls) ls
 
-
-select :: Eq o => o -> Info o a -> Rec a
-select o = fromJust.lookup o.fromInfo
 
 -- ========================= PRITNTING EXPLANATIONS =====================
 -- ======================================================================

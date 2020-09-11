@@ -3,9 +3,8 @@
 module Info where
 
 import qualified Data.Map.Strict as M
-import Data.Map.Merge.Strict
-import Data.Function (on)
 import Data.List
+import Data.Maybe (fromJust)
 import Text.Printf
 
 import Record
@@ -23,16 +22,21 @@ info oas = mkInfo [(o,mkRec as) | (o,as) <- oas]
 -- newInfo = Info $ M.empty
 
 fromInfo :: Info o a -> [(o,Rec a)]
-fromInfo = M.toList .unInfo
+fromInfo = M.toList . unInfo
+
+select :: Eq o => o -> Info o a -> Rec a
+select o = fromJust . lookup o . fromInfo
+
+(!) :: Eq o => Info o a -> o -> Rec a
+(!) = flip select
+
+-- agg :: (Rec a -> b) -> Info o a -> Rec o b
+-- agg f = Info . M.map f . unInfo
 
 
 instance (Show o,Show a) => Show (Info o a) where
   show ts = let ts' = map (\(x,y) -> show x ++ " ->\n" ++ show y) (fromInfo ts)
             in "{" ++ intercalate ",\n " ts' ++ "}\n"
-
-
--- objects :: (Ord a,Ord o) => [o] -> Info o a
--- objects os = mkInfo [(o,noAttributes) | o <- os]
 
 objects :: (Set o,Ord a) => Info o a
 objects = mkInfo [(o,emptyRec) | o <- members]
@@ -40,12 +44,6 @@ objects = mkInfo [(o,emptyRec) | o <- members]
 addAttribute :: (Ord o,Ord a) => a -> Spread o -> Info o a -> Info o a
 addAttribute c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- fromInfo bs,a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
-
--- gather :: (Ord a,Ord o) => (a -> Spread o) -> [a] ->  [o] -> Info o a
--- gather f as os = foldl (\o a -> addAttribute a (f a) o) (objects os) as
---
--- gather :: (Set o,Ord a) => (a -> Spread o) -> [a] -> Info o a
--- gather f as = foldl (\o a -> addAttribute a (f a) o) objects as
 
 gather :: (Set o,Set a) => (a -> Spread o) -> Info o a
 gather f = foldl (\o a -> addAttribute a (f a) o) objects members

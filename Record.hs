@@ -9,18 +9,11 @@ import Data.List
 import Text.Printf
 import Data.Tuple.OneTuple (only,OneTuple)
 
+
 class (Bounded a,Enum a,Ord a) => Set a where
   members :: [a]
   members = enumFromTo minBound maxBound
 
-
--- Used to represent beneficial or non-beneficial attributes
---
-data Valence = Pos | Neg
-
-class Ord a => AttrValence a where
-   valence :: a -> Valence
-   valence _ = Pos
 
 data Rec a = Rec {unRec :: M.Map a Double}
 
@@ -57,12 +50,9 @@ add = onRec (+)
 diff :: Ord a => Rec a -> Rec a -> Rec a
 diff = onRec (-)
 
-total :: Ord a => Rec a -> Double
-total = M.foldr (+) 0 . unRec
-
 
 instance Show a => Show (Rec a) where
-  show ts = let ts' = map (\(x,y) -> show x ++ " -> " ++ printf "%.3f" y) (fromRec ts)
+  show ts = let ts' = map (\(x,y) -> show x ++ " -> " ++ printf "%.2f" y) (fromRec ts)
             in "{" ++ intercalate ",\n " ts' ++ "}"
 
 (-->) :: a -> v -> (a,v)
