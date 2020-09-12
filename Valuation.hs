@@ -27,8 +27,30 @@ class Ord a => Valence a where
 -- Valuation
 --
 
-type Val o a = Info o a
+-- type Val o a = Info o a
 -- data Info o a = Info {unInfo :: M.Map o (Rec a)}
+
+data Val o a = Val {unVal :: M.Map o (Rec a)}
+
+instance (Show o,Show a) => Show (Val o a) where
+  show ts = g $ map (\(x,y) -> show x ++ " ->\n" ++ f y) (fromVal ts)
+      where g x = "{" ++ intercalate ",\n " x ++ "}\n"
+            f x = g $ map (\(x,y) -> show x ++ " -> " ++ printf "%.1f" (y*100)) (fromRec x)
+
+mkVal :: Ord o => [(o,Rec a)] -> Val o a
+mkVal = Val . M.fromList
+
+fromVal :: Val o a -> [(o,Rec a)]
+fromVal = M.toList . unVal
+
+infoToVal :: Info o a -> Val o a 
+infoToVal =  Val . unInfo
+
+select :: Eq o => o -> Val o a -> Rec a
+select o = fromJust . lookup o . fromVal
+
+(!) :: Eq o => Val o a -> o -> Rec a
+(!) = flip select
 
 
 valuation :: (Set o,Valence a) => Info o a -> Val o a
@@ -44,8 +66,6 @@ valuation o = addAllAttrVal (\x -> (fromJust.lookup x) xs) (map fst xs) objects
     g (o,as) = map (\(a,v) -> (a,(o,v))) (fromRec as)
 
     h :: Eq a => (a,b) -> (a,b) -> Bool
-    -- h = \x y -> fst x == fst y
-    -- h x y = fst x == fst y
     h = (==) `on` fst
 
     k :: [(a,(o,Fraction))] -> (a,Spread o)
@@ -58,20 +78,20 @@ val :: (Set o,Valence a) => Info o a -> Val o (OneTuple a)
 val = mkOneTuple . valuation
 
 agg  :: Ord a => ([Double] -> Double) -> Val o a -> Rec o
-agg f = Rec . M.map (f . M.elems . unRec) . unInfo
+agg f = Rec . M.map (f . M.elems . unRec) . unVal 
 
 total :: Ord a => Val o a -> Rec o
-total = agg sum
+total = agg (\x -> 100*sum x)
 
 average :: Ord a => Val o a -> Rec o
 average = agg (\xs->sum xs/fromIntegral (length xs))
 
 
-val' :: (Set o,Set a,Valence a) => (a -> Spread o)  -> Val o (OneTuple a)
-val' = (val.gather)
+-- val' :: (Set o,Set a,Valence a) => (a -> Spread o)  -> Val o (OneTuple a)
+-- val' = (val.gather)
 
-addAllAttrVal :: (Ord a,Ord o) => (a -> Spread o) -> [a] -> Info o a -> Info o a
-addAllAttrVal f cs bs = foldl (\b c -> addAttrVal c (f c) b) bs cs
+addAllAttrVal :: (Ord a,Ord o) => (a -> Spread o) -> [a] -> Info o a -> Val o a
+addAllAttrVal f cs bs = infoToVal $ foldl (\b c -> addAttrVal c (f c) b) bs cs
 
 addAttrVal :: (Ord a,Ord o) => a -> Spread o -> Info o a -> Info o a
 addAttrVal c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- bs',a == b]
@@ -82,19 +102,19 @@ normalize :: Valence a => a -> Spread o -> Spread o
 normalize c as = let vs = [v | (_,v) <- as]
                      s = sum vs
                      s' = sum.map (\x -> 1/x) $ vs
-                 in [(a,if valence c then v/s else (1/v)/s')| (a,v) <- as]
+                 in [(a,if valence c then (v/s) else ((1/v)/s')) | (a,v) <- as]
 
 
-mkVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
-mkVal = mkInfo.map f.groupBy h.sortBy (compare `on` fst)
+crtVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
+crtVal = mkVal.map f.groupBy h.sortBy (compare `on` fst)
   where
     f ls = (fst.head $ ls, mkRec . map snd $ ls)
     h :: Eq a => (a,b) -> (a,c) -> Bool
     h = \x y -> fst x == fst y
 
 
-mkOneTuple :: (Ord o,Ord a) => Info o a -> Info o (OneTuple a)
-mkOneTuple = mkInfo . map (\(o,a) -> (o,f a)).fromInfo
+mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
+mkOneTuple = mkVal . map (\(o,a) -> (o,f a)).fromVal
   where
     f = mkRec . map (\(b,n) -> (OneTuple b,n)) . fromRec
 
@@ -105,8 +125,8 @@ class (Projector a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d |
   extend as f = extendBy as (gather f)
 
   extendBy :: Val o a -> Info b c -> Val o d
-  extendBy as bs = mkVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromInfo as, (aa,av) <- fromRec a,
-                        (b,c) <- (fromInfo.valuation) bs, (cc,cv) <- fromRec c, proj aa==b]
+  extendBy as bs = crtVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromVal as, (aa,av) <- fromRec a,
+                           (b,c) <- (fromVal.valuation) bs, (cc,cv) <- fromRec c, proj aa==b]
 
 instance (Set a,Set b,Valence b,Ord o) => ExtendVal o (OneTuple a) a b (a,b) where
   mkTuple o (a,_,b) n = (o,((only a,b),n))
@@ -119,8 +139,8 @@ instance (Set c,Set d,Valence d,Ord o,Ord a,Ord b) => ExtendVal o (a,b,c) c d (a
 
 type Priority o = [(o,Fraction)]
 
-priority :: Info o a -> Priority o
-priority = map (\(o,a) -> (o,f a)).fromInfo
+priority :: Val o a -> Priority o
+priority = map (\(o,a) -> (o,f a)).fromVal
   where
     f = sum.map snd . fromRec
 

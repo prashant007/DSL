@@ -24,19 +24,15 @@ info oas = mkInfo [(o,mkRec as) | (o,as) <- oas]
 fromInfo :: Info o a -> [(o,Rec a)]
 fromInfo = M.toList . unInfo
 
-select :: Eq o => o -> Info o a -> Rec a
-select o = fromJust . lookup o . fromInfo
-
-(!) :: Eq o => Info o a -> o -> Rec a
-(!) = flip select
 
 -- agg :: (Rec a -> b) -> Info o a -> Rec o b
 -- agg f = Info . M.map f . unInfo
 
 
 instance (Show o,Show a) => Show (Info o a) where
-  show ts = let ts' = map (\(x,y) -> show x ++ " ->\n" ++ show y) (fromInfo ts)
+  show ts = let ts' = map (\(x,y) -> show x ++ " ->\n" ++ show y) (fromInfo ts) 
             in "{" ++ intercalate ",\n " ts' ++ "}\n"
+
 
 objects :: (Set o,Ord a) => Info o a
 objects = mkInfo [(o,emptyRec) | o <- members]
