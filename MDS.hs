@@ -11,19 +11,19 @@ import Valuation
 
  -- ================= MDS EXPLANATIONS ON ANNOGTATED VALUES =======================
 
-type ValDiff a = Rec a
-type Barrier a = Rec a
-type Support a = Rec a
-type MDS a = Rec a
-type Dom a = Rec a
+type ValDiff a = Norm a
+type Barrier a = Norm a
+type Support a = Norm a
+type MDS a = Norm a
+type Dom a = Norm a
 type Explain b = (ValDiff b,Support b,Barrier b,[Dom b],[MDS b])
 
 
 explain :: Ord a => ValDiff a -> Explain a
-explain v = (v,mkRec support,mkRec barrier, map mkRec ls,
-             map mkRec $ reverse $ sortBy (compare `on` f) ls')
+explain v = (v,mkNorm support,mkNorm barrier, map mkNorm ls,
+             map mkNorm $ reverse $ sortBy (compare `on` f) ls')
   where
-    d = map (\(x,y) -> (x,y)) (fromRec v)
+    d = map (\(x,y) -> (x,y)) (fromNorm v)
     (support,barrier) = partition (\(x,y) -> y>0) d
     f = abs.sum.map snd
     btotal = f barrier

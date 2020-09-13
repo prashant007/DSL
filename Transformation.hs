@@ -42,8 +42,8 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 -- ================== SUMOUT ==============================================
 -- ========================================================================
 
--- Sometimes we need to get rid of all but one elements in the tuples of Rec values
--- Consider the Rec val {(Friend,Fuel) -> 0.048,(Friend,Price) -> 0.032(Expert,Price) -> 0.080}.
+-- Sometimes we need to get rid of all but one elements in the tuples of Norm values
+-- Consider the Norm val {(Friend,Fuel) -> 0.048,(Friend,Price) -> 0.032(Expert,Price) -> 0.080}.
 -- Suppose, we want to to get the attr val just in terms of the friends and experts, that
 -- get rid of the feature component from the tuples. Once we get rid of (sum out) the second
 -- component of the tuple, the new tuple would look like this:
@@ -53,8 +53,8 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 -- used to achieve this effect on attr values.
 
 class (Projector a b,Ord b) => SumOut a b | a -> b where
-  sumOut :: Rec a -> Rec b
-  sumOut = mkRec.map h.groupBy g.sortBy (compare `on` f).fromRec
+  sumOut :: Norm a -> Norm b
+  sumOut = mkNorm.map h.groupBy g.sortBy (compare `on` f).fromNorm
     where
         h xs = ((f.head) xs,(sum.map snd) xs)
         g x y = f x == f y
@@ -71,41 +71,41 @@ instance Ord c => SumOut (a,b,c,d) c
 instance Ord d => SumOut (a,b,c,d) d
 
 
-class (Ord o,Ord b) => Object a o b | a -> o b where
-    getPair :: a -> (o,b)
+-- class (Ord o,Ord b) => Object a o b | a -> o b where
+--     getPair :: a -> (o,b)
 
-    crtObj :: Rec a -> Info o b
-    crtObj = mkInfo.l.map h.groupBy g.sortBy (compare `on` f).fromRec
-        where l = map l2.groupBy l1
-              l1 x y = fst x == fst y
-              l2 x = (fst.head $ x,mkRec.map snd $ x)
-              h x = (h' fst x,(h' snd x,sum.map snd $ x))
-              h' k x = k.f.head $ x
-              g x y = f x == f y
-              f = getPair.fst
+--     crtObj :: Norm a -> Info o b
+--     crtObj = mkInfo.l.map h.groupBy g.sortBy (compare `on` f).fromRec
+--         where l = map l2.groupBy l1
+--               l1 x y = fst x == fst y
+--               l2 x = (fst.head $ x,mkRec.map snd $ x)
+--               h x = (h' fst x,(h' snd x,sum.map snd $ x))
+--               h' k x = k.f.head $ x
+--               g x y = f x == f y
+--               f = getPair.fst
 
 
-instance (Ord a,Ord b) => Object (a,b,c,d) a b where
-  getPair (a,b,c,d) = (a,b)
+-- instance (Ord a,Ord b) => Object (a,b,c,d) a b where
+--   getPair (a,b,c,d) = (a,b)
 
-instance (Ord b,Ord c) => Object (a,b,c,d) b c where
-  getPair (a,b,c,d) = (b,c)
+-- instance (Ord b,Ord c) => Object (a,b,c,d) b c where
+--   getPair (a,b,c,d) = (b,c)
 
-instance (Ord c,Ord d) => Object (a,b,c,d) c d where
-  getPair (a,b,c,d) = (c,d)
+-- instance (Ord c,Ord d) => Object (a,b,c,d) c d where
+--   getPair (a,b,c,d) = (c,d)
 
 -- ===================== REDUCE =============================================
 -- ==========================================================================
 
--- Many a times the Rec value may have an argument that stays the same in all
--- the elements of an Rec value. The Reduce type class provides a way, using
+-- Many a times the Norm value may have an argument that stays the same in all
+-- the elements of an Norm value. The Reduce type class provides a way, using
 -- the denoise function to achieve this.
 
 class Reduce a b | a -> b where
   rmv :: a -> b
 
-  reduce :: (Ord a,Ord b) => Rec a -> Rec b
-  reduce = mkRec.map (\(x,n) -> (rmv x,n)).fromRec
+  reduce :: (Ord a,Ord b) => Norm a -> Norm b
+  reduce = mkNorm.map (\(x,n) -> (rmv x,n)).fromNorm
 
 instance Reduce (a,b) b where
   rmv :: (a,b) -> b
@@ -147,20 +147,20 @@ instance Reduce (a,b,c,d) (a,c,d) where
 -- ========================== FACTORING =====================================
 -- ==========================================================================
 
--- Consider the following Rec value: {(Friend,Safety) -> -0.048,(Expert,Safety) -> -0.064}
--- We observe that Safety could be factored in this Rec value giving us this pretty printed
+-- Consider the following Norm value: {(Friend,Safety) -> -0.048,(Expert,Safety) -> -0.064}
+-- We observe that Safety could be factored in this Norm value giving us this pretty printed
 -- representation: Safety: -0.112 (Friend:-0.048, Expert:-0.064). This factored representation
 -- can be easier for the end user to consume than the original unfactored one. GroupBy type class
 -- provides an interface to the factorize function which performs the factorization operation
 -- and pFactor prints the factor in the pretty printed form.
 
-type Factor b c = [(b,Rec c,Double)]
+type Factor b c = [(b,Norm c,Double)]
 
 class (SumOut a b,Reduce a c,Projector a b) => GroupBy a b c | a -> b c where
-  factorize :: (Ord a,Ord b,Ord c) => Rec a -> Factor b c
+  factorize :: (Ord a,Ord b,Ord c) => Norm a -> Factor b c
   factorize xs = zipWith (\x y -> (fst x,reduce y,snd x)) (h xs) (k xs)
-      where h = sort.fromRec.sumOut
-            k = map mkRec.groupBy g.sortBy (compare `on` f).fromRec
+      where h = sort.fromNorm.sumOut
+            k = map mkNorm.groupBy g.sortBy (compare `on` f).fromNorm
             g x y = f x == f y
             f = proj.fst
 
