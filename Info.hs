@@ -1,4 +1,4 @@
-{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances #-}
+{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,DataKinds #-}
 
 module Info where
 
@@ -10,15 +10,13 @@ import Text.Printf
 import Record
 
 
-data Rep r o a = Rep {unRep :: M.Map o (r a)}
-
-type Info o a = Rep Rec o a
+data Info o a = Info {unInfo :: M.Map o (Rec a)}
 
 
 -- data Info o a = Info {unInfo :: M.Map o (Rec a)}
 
 mkInfo :: Ord o => [(o,Rec a)] -> Info o a
-mkInfo = Rep . M.fromList
+mkInfo = Info . M.fromList
 
 info :: (Ord o,Ord a) => [(o,[(a,Double)])] -> Info o a
 info oas = mkInfo [(o,mkRec as) | (o,as) <- oas]
@@ -27,7 +25,7 @@ info oas = mkInfo [(o,mkRec as) | (o,as) <- oas]
 -- newInfo = Info $ M.empty
 
 fromInfo :: Info o a -> [(o,Rec a)]
-fromInfo = M.toList . unRep
+fromInfo = M.toList . unInfo
 
 
 -- agg :: (Rec a -> b) -> Info o a -> Rec o b
@@ -50,7 +48,7 @@ gather :: (Set o,Set a) => (a -> Spread o) -> Info o a
 gather f = foldl (\o a -> addAttribute a (f a) o) objects members
 
 addAlternative :: (Ord o,Set a) => o -> (a -> Double) -> Info o a -> Info o a
-addAlternative o f vs = Rep $ M.insert o (mkRec ls) (unRep vs)
+addAlternative o f vs = Info $ M.insert o (mkRec ls) (unInfo vs)
     where ls = map (\x -> (x,f x)) members
 
 

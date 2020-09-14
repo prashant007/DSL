@@ -1,4 +1,4 @@
-{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances #-}
+{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,DataKinds #-}
 
 module Valuation where
 
@@ -27,17 +27,17 @@ class Ord a => Valence a where
 -- Valuation
 --
 
-type Val o a  = Rep Norm o a
+data Val o a = Val {unVal :: M.Map o (Norm a)}
 
 instance (Show o,Show a) => Show (Val o a) where
   show ts = let ts' = map (\(x,y) -> show x ++ " ->\n" ++ show y) (fromVal ts) 
             in "{" ++ intercalate ",\n " ts' ++ "}\n"
 
 mkVal :: Ord o => [(o,Norm a)] -> Val o a
-mkVal = Rep . M.fromList
+mkVal = Val . M.fromList
 
 fromVal :: Val o a -> [(o,Norm a)]
-fromVal = M.toList . unRep
+fromVal = M.toList . unVal
 
 infoToVal :: (Ord o,Ord a) => Info o a -> Val o a 
 infoToVal =  mkVal . map (\(x,y) -> (x,recToNorm y)) . fromInfo
@@ -59,7 +59,7 @@ valuation o = addAllAttrVal (\x -> (fromJust.lookup x) xs) (map fst xs) objects
     l (x,y) = (x,normalize x y)
 
     g :: (o,Norm a) -> [(a,(o,Fraction))]
-    g (o,as) = map (\(a,v) -> (a,(o,v))) (fromNorm as)
+    g (o,as) = map (\(a,v) -> (a,(o,v))) (fromRec as)
 
     h :: Eq a => (a,b) -> (a,b) -> Bool
     h = (==) `on` fst
@@ -74,7 +74,7 @@ val :: (Set o,Valence a) => Info o a -> Val o (OneTuple a)
 val = mkOneTuple . valuation
 
 agg  :: Ord a => ([Double] -> Double) -> Val o a -> Norm o
-agg f = Norm . M.map (f . M.elems . unNorm) . unRep 
+agg f = Rec . M.map (f . M.elems . unRec) . unVal 
 
 total :: Ord a => Val o a -> Norm o
 total = agg sum
@@ -104,7 +104,7 @@ normalize c as = let vs = [v | (_,v) <- as]
 crtVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
 crtVal = mkVal.map f.groupBy h.sortBy (compare `on` fst)
   where
-    f ls = (fst.head $ ls, mkNorm . map snd $ ls)
+    f ls = (fst.head $ ls, mkRec . map snd $ ls)
     h :: Eq a => (a,b) -> (a,c) -> Bool
     h = \x y -> fst x == fst y
 
@@ -112,7 +112,7 @@ crtVal = mkVal.map f.groupBy h.sortBy (compare `on` fst)
 mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
 mkOneTuple = mkVal . map (\(o,a) -> (o,f a)) . fromVal
   where
-    f = mkNorm . map (\(b,n) -> (OneTuple b,n)) . fromNorm
+    f = mkRec . map (\(b,n) -> (OneTuple b,n)) . fromRec
 
 class (Projector a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
@@ -121,8 +121,8 @@ class (Projector a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d |
   extend as f = extendBy as (gather f)
 
   extendBy :: Val o a -> Info b c -> Val o d
-  extendBy as bs = crtVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromVal as, (aa,av) <- fromNorm a,
-                           (b,c) <- (fromVal.valuation) bs, (cc,cv) <- fromNorm c, proj aa==b]
+  extendBy as bs = crtVal [mkTuple o (aa,b,cc) (av*cv) | (o,a) <- fromVal as, (aa,av) <- fromRec a,
+                           (b,c) <- (fromVal.valuation) bs, (cc,cv) <- fromRec c, proj aa==b]
 
 instance (Set a,Set b,Valence b,Ord o) => ExtendVal o (OneTuple a) a b (a,b) where
   mkTuple o (a,_,b) n = (o,((only a,b),n))
@@ -138,4 +138,4 @@ type Priority o = [(o,Fraction)]
 priority :: Val o a -> Priority o
 priority = map (\(o,a) -> (o,f a)).fromVal
   where
-    f = sum.map snd . fromNorm 
+    f = sum.map snd . fromRec 

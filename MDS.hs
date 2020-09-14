@@ -20,10 +20,10 @@ type Explain b = (ValDiff b,Support b,Barrier b,[Dom b],[MDS b])
 
 
 explain :: Ord a => ValDiff a -> Explain a
-explain v = (v,mkNorm support,mkNorm barrier, map mkNorm ls,
-             map mkNorm $ reverse $ sortBy (compare `on` f) ls')
+explain v = (v,mkRec support,mkRec barrier, map mkRec ls,
+             map mkRec $ reverse $ sortBy (compare `on` f) ls')
   where
-    d = map (\(x,y) -> (x,y)) (fromNorm v)
+    d = map (\(x,y) -> (x,y)) (fromRec v)
     (support,barrier) = partition (\(x,y) -> y>0) d
     f = abs.sum.map snd
     btotal = f barrier

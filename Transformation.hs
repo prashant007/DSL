@@ -54,7 +54,7 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 
 class (Projector a b,Ord b) => SumOut a b | a -> b where
   sumOut :: Norm a -> Norm b
-  sumOut = mkNorm.map h.groupBy g.sortBy (compare `on` f).fromNorm
+  sumOut = mkRec.map h.groupBy g.sortBy (compare `on` f).fromRec
     where
         h xs = ((f.head) xs,(sum.map snd) xs)
         g x y = f x == f y
@@ -105,7 +105,7 @@ class Reduce a b | a -> b where
   rmv :: a -> b
 
   reduce :: (Ord a,Ord b) => Norm a -> Norm b
-  reduce = mkNorm.map (\(x,n) -> (rmv x,n)).fromNorm
+  reduce = mkRec.map (\(x,n) -> (rmv x,n)).fromRec
 
 instance Reduce (a,b) b where
   rmv :: (a,b) -> b
@@ -159,8 +159,8 @@ type Factor b c = [(b,Norm c,Double)]
 class (SumOut a b,Reduce a c,Projector a b) => GroupBy a b c | a -> b c where
   factorize :: (Ord a,Ord b,Ord c) => Norm a -> Factor b c
   factorize xs = zipWith (\x y -> (fst x,reduce y,snd x)) (h xs) (k xs)
-      where h = sort.fromNorm.sumOut
-            k = map mkNorm.groupBy g.sortBy (compare `on` f).fromNorm
+      where h = sort.fromRec.sumOut
+            k = map mkRec.groupBy g.sortBy (compare `on` f).fromRec
             g x y = f x == f y
             f = proj.fst
 
