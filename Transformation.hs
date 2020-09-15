@@ -9,7 +9,7 @@ import Data.List
 
 import Record
 import Info
-import MDS
+import MDS hiding (compare)
 
 
 -- ================== GENERALIZE ==========================================
@@ -70,29 +70,6 @@ instance Ord b => SumOut (a,b,c,d) b
 instance Ord c => SumOut (a,b,c,d) c
 instance Ord d => SumOut (a,b,c,d) d
 
-
--- class (Ord o,Ord b) => Object a o b | a -> o b where
---     getPair :: a -> (o,b)
-
---     crtObj :: Norm a -> Info o b
---     crtObj = mkInfo.l.map h.groupBy g.sortBy (compare `on` f).fromRec
---         where l = map l2.groupBy l1
---               l1 x y = fst x == fst y
---               l2 x = (fst.head $ x,mkRec.map snd $ x)
---               h x = (h' fst x,(h' snd x,sum.map snd $ x))
---               h' k x = k.f.head $ x
---               g x y = f x == f y
---               f = getPair.fst
-
-
--- instance (Ord a,Ord b) => Object (a,b,c,d) a b where
---   getPair (a,b,c,d) = (a,b)
-
--- instance (Ord b,Ord c) => Object (a,b,c,d) b c where
---   getPair (a,b,c,d) = (b,c)
-
--- instance (Ord c,Ord d) => Object (a,b,c,d) c d where
---   getPair (a,b,c,d) = (c,d)
 
 -- ===================== REDUCE =============================================
 -- ==========================================================================
@@ -182,3 +159,5 @@ instance Ord a => GroupBy (a,b,c,d) a (b,c,d)
 instance Ord b => GroupBy (a,b,c,d) b (a,c,d)
 instance Ord c => GroupBy (a,b,c,d) c (a,b,d)
 instance Ord d => GroupBy (a,b,c,d) d (a,b,c)
+
+

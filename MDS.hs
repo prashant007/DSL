@@ -1,7 +1,10 @@
+{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,DataKinds #-}
+
 module MDS where
 
 import Data.Function
 import qualified Data.Map as M
+import Data.Maybe 
 import Text.Printf
 import Data.List
 
@@ -21,14 +24,14 @@ type Explain b = (ValDiff b,Support b,Barrier b,[Dom b],[MDS b])
 
 explain :: Ord a => ValDiff a -> Explain a
 explain v = (v,mkRec support,mkRec barrier, map mkRec ls,
-             map mkRec $ reverse $ sortBy (compare `on` f) ls')
+             map mkRec $ reverse $ sortBy (Prelude.compare `on` f) ls')
   where
     d = map (\(x,y) -> (x,y)) (fromRec v)
     (support,barrier) = partition (\(x,y) -> y>0) d
     f = abs.sum.map snd
     btotal = f barrier
     doms = [d | d <- subsequences support, f d > btotal]
-    ls = sortBy (compare `on` length) doms
+    ls = sortBy (Prelude.compare `on` length) doms
     ls'= takeWhile (\p -> length p == (length.head) ls) ls
 
 
@@ -61,3 +64,32 @@ ph (a,b,c) = do
       pd b
       putStrLn "\nBarrier:"
       pd c
+
+
+class (Eq o,Num b) => Select o a b | a -> b where
+  fromA :: a -> [(o,b)] 
+
+  select :: o -> a -> b 
+  select o = fromJust . lookup o . fromA
+
+  (!) :: a -> o -> b 
+  (!) = flip select 
+
+  compare :: a -> o -> o -> b 
+  compare i o1 o2 = i!o1 - i!o2
+
+
+instance (Eq o,Ord a) => Select o (Val o a) (Norm a) where
+  fromA = fromVal
+
+instance (Eq o,Ord a) => Select o (Info o a) (Rec a) where
+  fromA = fromInfo
+
+-- instance Select o (Info o a) (Norm a) where
+--   func = 
+
+-- select :: Eq o => o -> Val o a -> Norm a
+-- select o = fromJust . lookup o . fromVal
+
+-- (!) :: Eq o => Val o a -> o -> Norm a
+-- (!) = flip select 

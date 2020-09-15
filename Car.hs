@@ -54,8 +54,8 @@ carsF = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
 
 h = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8]]
 
-compare :: (Eq o,Ord r) => Val o r -> o -> o -> Norm r
-compare i o1 o2 = i!o1 - i!o2
+-- compare :: (Eq o,Ord r) => Val o r -> o -> o -> Norm r
+-- compare i o1 o2 = i!o1 - i!o2
 
 hvb :: Ord r => Val Car r -> Norm r
 hvb i = compare i Honda BMW

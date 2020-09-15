@@ -23,7 +23,6 @@ class Ord a => Valence a where
    valence :: a -> Bool
    valence _ = True
 
-
 -- Valuation
 --
 
@@ -41,12 +40,6 @@ fromVal = M.toList . unVal
 
 infoToVal :: (Ord o,Ord a) => Info o a -> Val o a 
 infoToVal =  mkVal . map (\(x,y) -> (x,recToNorm y)) . fromInfo
-
-select :: Eq o => o -> Val o a -> Norm a
-select o = fromJust . lookup o . fromVal
-
-(!) :: Eq o => Val o a -> o -> Norm a
-(!) = flip select
 
 
 valuation :: (Set o,Valence a) => Info o a -> Val o a
