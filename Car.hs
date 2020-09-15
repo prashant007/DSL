@@ -42,63 +42,44 @@ values Price  = [Honda --> 34000, BMW --> 36000]
 values MPG    = [Honda --> 30,    BMW --> 33]
 values Safety = [Honda --> 9.8,   BMW --> 9.1]
 
-carsF :: Info Car Feature
-carsF = gather values
+cars :: Info Car Feature
+cars = gather values
 -}
 
-carsF :: Info Car Feature
-carsF = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
-              BMW   --> [Price --> 36000, MPG --> 33, Safety --> 9.1]]
--- carsF = info [Honda --> [Price --> 200, MPG --> 3, Safety --> 1],
---               BMW   --> [Price --> 400, MPG --> 6, Safety --> 1]]
-
-h = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8]]
-
--- compare :: (Eq o,Ord r) => Val o r -> o -> o -> Norm r
--- compare i o1 o2 = i!o1 - i!o2
-
-hvb :: Ord r => Val Car r -> Norm r
-hvb i = compare i Honda BMW
-
-{-
- compare carsF Honda BMW
-{Price -> -2000.00,
- MPG -> -3.00,
- Safety -> 0.70}
--}
+cars :: Info Car Feature
+cars = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
+             BMW   --> [Price --> 36000, MPG --> 33, Safety --> 9.1]]
 
 -- (2) creating a valuation from data (only for features)
 --
 carsV :: Val Car Feature
-carsV = valuation carsF
+carsV = valuation cars
 
-hV = valuation h
+
+-- (3) Some variation: adding/deleting/modifying a feature attribute
+--
+toyota :: Feature -> Double
+toyota Price  = 27000
+toyota Safety = 9.4
+toyota MPG    = 30
+
+threeCars :: Info Car Feature
+threeCars = addAlternative Toyota toyota cars
+
+
+features3 = delAttribute cars Price
+
+features4 = modAttribute cars Price Honda 45000
+
 
 -- (3) Weighing attributes
 --
 fWeights :: Info Feature Weight
--- fWeights = addAttribute Weight [Price --> 0.6,MPG --> 0.4, Safety --> 0.3] objects
 fWeights = addAttribute Weight [Price --> 1,MPG --> 1, Safety --> 1] objects
 -- fWeights = addAttribute Weight [Price --> 1,MPG --> 2, Safety --> 1] objects
 
 carsVW :: Val Car (Feature,Weight)
 carsVW = mkOneTuple carsV `extendBy` fWeights
-
-hVW = mkOneTuple hV `extendBy` fWeights
-
--- (3) Some variation: adding/deleting/modifying a feature attribute
---
-toyota :: Feature -> Double
-toyota Price  = 20000
-toyota Safety = 50
-toyota MPG    = 30
-
-features2 :: Info Car Feature
-features2 = addAlternative Toyota toyota carsF
-
-features3 = delAttribute carsF Price
-
-features4 = modAttribute carsF Price Honda 45000
 
 
 -- (4) Adding dimensions to car features (users and weights)
@@ -124,17 +105,17 @@ bInfo = mkInfo [BMW --> bRec]
 -- (5) Creating valuations for extended data
 --
 -- carsUF :: Val Car (User,Feature)
--- carsUF = extend carsF users
+-- carsUF = extend cars users
 --
 -- carsWUF :: Val Car (Weight,User,Feature)
 -- carsWUF = extend carsUF weights
 
-cars :: Val Car (Feature,User,Weight)
--- cars = val carsF `extendBy` users `extendBy` weights
-cars = mkOneTuple carsV `extendBy` users `extendBy` weights
+cars' :: Val Car (Feature,User,Weight)
+-- cars = val cars `extendBy` users `extendBy` weights
+cars' = mkOneTuple carsV `extendBy` users `extendBy` weights
 
 carPriority :: Priority Car
-carPriority = priority cars
+carPriority = priority cars'
 
 -- ======================= FILTERING ELEMENTS FROM ANNOTATED VALUES ===========================
 -- ============================================================================================
@@ -152,7 +133,7 @@ type CarDecomp = Norm (Feature,User,Weight)
 -- bmw = select BMW cars
 --
 vdCar :: CarDecomp
-vdCar = select Honda cars `diff` select BMW cars
+vdCar = select Honda cars' `diff` select BMW cars'
 
 exp0 :: Explain (Feature,User,Weight)
 exp0 = explain vdCar

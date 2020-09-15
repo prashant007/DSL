@@ -4,7 +4,7 @@ module MDS where
 
 import Data.Function
 import qualified Data.Map as M
-import Data.Maybe 
+import Data.Maybe
 import Text.Printf
 import Data.List
 
@@ -67,16 +67,16 @@ ph (a,b,c) = do
 
 
 class (Eq o,Num b) => Select o a b | a -> b where
-  toLookupList :: a -> [(o,b)] 
+  toLookupList :: a -> [(o,b)]
 
-  select :: o -> a -> b 
-  select o = fromJust . lookup o . toLookupList
+select :: Select o a b => o -> a -> b
+select o = fromJust . lookup o . toLookupList
 
-  (!) :: a -> o -> b 
-  (!) = flip select 
+(!) :: Select o a b => a -> o -> b
+(!) = flip select
 
-  compare :: a -> o -> o -> b 
-  compare i o1 o2 = i!o1 - i!o2
+compare :: Select o a b => a -> o -> o -> b 
+compare i o1 o2 = i!o1 - i!o2
 
 
 instance (Eq o,Ord a) => Select o (Val o a) (Norm a) where
@@ -86,10 +86,10 @@ instance (Eq o,Ord a) => Select o (Info o a) (Rec a) where
   toLookupList = fromInfo
 
 -- instance Select o (Info o a) (Norm a) where
---   func = 
+--   func =
 
 -- select :: Eq o => o -> Val o a -> Norm a
 -- select o = fromJust . lookup o . fromVal
 
 -- (!) :: Eq o => Val o a -> o -> Norm a
--- (!) = flip select 
+-- (!) = flip select
