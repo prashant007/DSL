@@ -67,10 +67,10 @@ ph (a,b,c) = do
 
 
 class (Eq o,Num b) => Select o a b | a -> b where
-  fromA :: a -> [(o,b)] 
+  toLookupList :: a -> [(o,b)] 
 
   select :: o -> a -> b 
-  select o = fromJust . lookup o . fromA
+  select o = fromJust . lookup o . toLookupList
 
   (!) :: a -> o -> b 
   (!) = flip select 
@@ -80,10 +80,10 @@ class (Eq o,Num b) => Select o a b | a -> b where
 
 
 instance (Eq o,Ord a) => Select o (Val o a) (Norm a) where
-  fromA = fromVal
+  toLookupList = fromVal
 
 instance (Eq o,Ord a) => Select o (Info o a) (Rec a) where
-  fromA = fromInfo
+  toLookupList = fromInfo
 
 -- instance Select o (Info o a) (Norm a) where
 --   func = 
