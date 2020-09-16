@@ -53,7 +53,7 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 -- used to achieve this effect on attr values.
 
 class (Projector a b,Ord b) => SumOut a b | a -> b where
-  sumOut :: Norm a -> Norm b
+  sumOut :: Rec a -> Rec b
   sumOut = mkRec.map h.groupBy g.sortBy (compare `on` f).fromRec
     where
         h xs = ((f.head) xs,(sum.map snd) xs)
@@ -74,14 +74,14 @@ instance Ord d => SumOut (a,b,c,d) d
 -- ===================== REDUCE =============================================
 -- ==========================================================================
 
--- Many a times the Norm value may have an argument that stays the same in all
+-- Many a times the record value may have an argument that stays the same in all
 -- the elements of an Norm value. The Reduce type class provides a way, using
 -- the denoise function to achieve this.
 
 class Reduce a b | a -> b where
   rmv :: a -> b
 
-  reduce :: (Ord a,Ord b) => Norm a -> Norm b
+  reduce :: (Ord a,Ord b) => Rec a -> Rec b
   reduce = mkRec.map (\(x,n) -> (rmv x,n)).fromRec
 
 instance Reduce (a,b) b where
@@ -124,17 +124,17 @@ instance Reduce (a,b,c,d) (a,c,d) where
 -- ========================== FACTORING =====================================
 -- ==========================================================================
 
--- Consider the following Norm value: {(Friend,Safety) -> -0.048,(Expert,Safety) -> -0.064}
+-- Consider the following record value: {(Friend,Safety) -> -0.048,(Expert,Safety) -> -0.064}
 -- We observe that Safety could be factored in this Norm value giving us this pretty printed
 -- representation: Safety: -0.112 (Friend:-0.048, Expert:-0.064). This factored representation
 -- can be easier for the end user to consume than the original unfactored one. GroupBy type class
 -- provides an interface to the factorize function which performs the factorization operation
 -- and pFactor prints the factor in the pretty printed form.
 
-type Factor b c = [(b,Norm c,Double)]
+type Factor b c = [(b,Rec c,Double)]
 
 class (SumOut a b,Reduce a c,Projector a b) => GroupBy a b c | a -> b c where
-  factorize :: (Ord a,Ord b,Ord c) => Norm a -> Factor b c
+  factorize :: (Ord a,Ord b,Ord c) => Rec a -> Factor b c
   factorize xs = zipWith (\x y -> (fst x,reduce y,snd x)) (h xs) (k xs)
       where h = sort.fromRec.sumOut
             k = map mkRec.groupBy g.sortBy (compare `on` f).fromRec

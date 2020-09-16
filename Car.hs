@@ -39,6 +39,11 @@ carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
 carsV :: Val Car Feature
 carsV = valuation carFeatures
 
+compare :: (Eq o,Ord r) => Val o r -> o -> o -> Rec r
+compare i o1 o2 = i!o1 - i!o2
+
+hvb :: Ord r => Val Car r -> Rec r
+hvb i = compare i Honda BMW
 
 -- (3) Some variation: adding/deleting/modifying a feature attribute
 --
@@ -46,6 +51,7 @@ toyota :: Feature -> Double
 toyota Price  = 27000
 toyota Safety = 9.4
 toyota MPG    = 30
+
 
 threeCars :: Info Car Feature
 threeCars = addAlternative Toyota toyota carFeatures
