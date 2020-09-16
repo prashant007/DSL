@@ -28,19 +28,6 @@ class Ord a => Valence a where
 
 type Val o a = Info o a 
 
--- instance (Show o,Show a) => Show (Val o a) where
---   show ts = let ts' = map (\(x,y) -> show x ++ " ->\n" ++ show y) (fromVal ts) 
---             in "{" ++ intercalate ",\n " ts' ++ "}\n"
-
--- mkVal :: Ord o => [(o,Norm a)] -> Val o a
--- mkVal = Val . M.fromList
-
--- fromVal :: Val o a -> [(o,Norm a)]
--- fromVal = M.toList . unVal
-
--- infoToVal :: (Ord o,Ord a) => Info o a -> Val o a 
--- infoToVal =  mkVal . map (\(x,y) -> (x,recToNorm y)) . fromInfo
-
 
 valuation :: (Set o,Valence a) => Info o a -> Val o a
 valuation o = addAllAttrVal (\x -> (fromJust.lookup x) xs) (map fst xs) objects
