@@ -15,13 +15,7 @@ class (Bounded a,Enum a,Ord a) => Set a where
   members = enumFromTo minBound maxBound
 
 
-data GenRec (f::Bool) a = Rec {unRec :: M.Map a Double}
-
--- Original unnormalized representation
-type Rec r = GenRec 'True r
-
--- Normalized Representation
-type Norm r = GenRec 'False r
+data Rec a = Rec {unRec :: M.Map a Double}
 
 --
 -- Printing unnormalized record values
@@ -31,33 +25,23 @@ instance Show a => Show (Rec a) where
               in "{" ++ intercalate ",\n " ts' ++ "}"
 
 
-fromRec :: GenRec f a -> [(a,Double)]
+fromRec :: Rec a -> [(a,Double)]
 fromRec = M.toList . unRec
 
-mkRec :: Ord a => [(a,Double)] -> GenRec f a 
+mkRec :: Ord a => [(a,Double)] -> Rec a 
 mkRec = Rec . M.fromList
 
-emptyRec :: Ord a => GenRec f a  
+emptyRec :: Ord a => Rec a  
 emptyRec = mkRec []
 
--- Pritning Normalized Record
---
-
-instance Show a => Show (Norm a) where
-  show ts = let ts' = map (\(x,y) -> show x ++ " -> " ++ printf "%.1f" (y*100)) (fromRec ts)
-            in "{" ++ intercalate ",\n " ts' ++ "}"
-
-recToNorm :: Ord a => Rec a -> Norm a 
-recToNorm = mkRec.fromRec 
-
-onRec :: Ord a => (Double -> Double -> Double) -> GenRec f a -> GenRec f a -> GenRec f a
+onRec :: Ord a => (Double -> Double -> Double) -> Rec a -> Rec a -> Rec a
 onRec g x y =  Rec $ merge preserveMissing preserveMissing
                        (zipWithMatched (\_->g)) (unRec x) (unRec y)
 
-mapRec :: Ord a => (Double -> Double) -> GenRec f a -> GenRec f a
+mapRec :: Ord a => (Double -> Double) -> Rec a -> Rec a
 mapRec f =  mkRec.map (\(x,y) -> (x,f y)).fromRec
 
-instance Ord a => Num (GenRec f a) where
+instance Ord a => Num (Rec a) where
   (+) = onRec (+)
   (*) = onRec (*)
   (-) = onRec (-)
@@ -66,7 +50,7 @@ instance Ord a => Num (GenRec f a) where
   signum = mapRec signum
   fromInteger x = undefined
 
-diff :: Ord a => GenRec f a -> GenRec f a -> GenRec f a
+diff :: Ord a => Rec a -> Rec a -> Rec a
 diff = onRec (-)
 
 (-->) :: a -> v -> (a,v)

@@ -54,10 +54,10 @@ carsF = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
 
 h = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8]]
 
--- compare :: (Eq o,Ord r) => Val o r -> o -> o -> Norm r
+-- compare :: (Eq o,Ord r) => Val o r -> o -> o -> Rec r
 -- compare i o1 o2 = i!o1 - i!o2
 
-hvb :: Ord r => Val Car r -> Norm r
+hvb :: Ord r => Val Car r -> Rec r
 hvb i = compare i Honda BMW
 
 {-
@@ -141,7 +141,7 @@ carPriority = priority cars
 
 -- (6) Explaining decisions
 --
-type CarDecomp = Norm (Feature,User,Weight)
+type CarDecomp = Rec (Feature,User,Weight)
 
 -- Valuations for specific cars
 --
@@ -173,7 +173,7 @@ exp2 = generalize vdCar
 
 mds0 :: MDS (Feature,User)
 mds0 = let (_,_,_,ms,_) = exp0
-       in  reduce (head ms)::Norm (Feature,User)
+       in  reduce (head ms)::Rec (Feature,User)
 
 m01 = pFact (factorize mds0 :: Factor Feature User)
 m02 = pFact (factorize mds0 :: Factor User Feature)
