@@ -18,12 +18,11 @@ class (Bounded a,Enum a,Ord a) => Set a where
 data Rec a = Rec {unRec :: M.Map a Double}
 
 --
--- Printing unnormalized record values
+-- Printing record values
 
 instance Show a => Show (Rec a) where
     show ts = let ts' = map (\(x,y) -> show x ++ " -> " ++ printf "%.2f" y) (fromRec ts)
               in "{" ++ intercalate ",\n " ts' ++ "}"
-
 
 fromRec :: Rec a -> [(a,Double)]
 fromRec = M.toList . unRec

@@ -68,3 +68,19 @@ modAttribute os a o' v = mkInfo [if o == o' then f a o v  ov else p | p@(o,ov) <
 -- a function for removing a dimension
 delDim :: (Ord a,Ord o) => Info o a -> [a] -> Info o a
 delDim = foldl delAttribute
+
+-- [(o,[(a,Double)])] 
+
+
+
+transpose :: (Ord a,Ord o) => Info o a -> Info a o
+transpose i = mkInfo $ map (\x -> (x,filterAttr x i)) (allAttrs i)
+    where 
+        filterAttr :: (Ord a,Ord o) => a -> Info o a -> Rec o 
+        filterAttr a = mkRec . map (\(o,l) -> (o,fromJust.lookup a $ l)) . infoToList
+
+        infoToList :: Info o a -> [(o,[(a,Double)])]   
+        infoToList = map (\(o,l) -> (o,fromRec l)).fromInfo
+
+        allAttrs :: Info o a -> [a]
+        allAttrs = (map fst.snd.head.infoToList)
