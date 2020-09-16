@@ -69,10 +69,6 @@ modAttribute os a o' v = mkInfo [if o == o' then f a o v  ov else p | p@(o,ov) <
 delDim :: (Ord a,Ord o) => Info o a -> [a] -> Info o a
 delDim = foldl delAttribute
 
--- [(o,[(a,Double)])] 
-
-
-
 transpose :: (Ord a,Ord o) => Info o a -> Info a o
 transpose i = mkInfo $ map (\x -> (x,filterAttr x i)) (allAttrs i)
     where 
