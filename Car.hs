@@ -106,7 +106,7 @@ carPriority = priority cars
 
 -- (6) Explaining decisions
 --
-type CarDecomp = Norm (Feature,Opinion,Weight)
+type CarDecomp = Rec (Feature,Opinion,Weight)
 
 -- Valuations for specific cars
 --
@@ -138,7 +138,7 @@ exp2 = generalize vdCar
 
 mds0 :: MDS (Feature,Opinion)
 mds0 = let (_,_,_,ms,_) = exp0
-       in  reduce (head ms)::Norm (Feature,Opinion)
+       in  reduce (head ms)::Rec (Feature,Opinion)
 
 m01 = pFact (factorize mds0 :: Factor Feature Opinion)
 m02 = pFact (factorize mds0 :: Factor Opinion Feature)
