@@ -5,7 +5,7 @@ module Valuation where
 import qualified Data.Map.Strict as M
 import Data.Map.Merge.Strict
 import Data.Function (on)
-import Data.List
+import Data.List hiding (transpose)
 import Text.Printf
 import Data.Maybe
 import Data.Tuple.OneTuple (only,OneTuple(..))
@@ -28,29 +28,19 @@ class Ord a => Valence a where
 
 type Val o a = Info o a 
 
-
-valuation :: (Set o,Valence a) => Info o a -> Val o a
-valuation o = addAllAttrVal (\x -> (fromJust.lookup x) xs) (map fst xs) objects
+valuation :: (Ord o,Set a,Valence a) => Info o a -> Val o a 
+valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members 
   where
-    xs = f o
-    os = nub . map fst . concatMap snd $ xs
+    -- form pairs of attributes and records made from normalized spreads
+    attrNormRecPair :: (Ord o,Valence a) => Info o a -> a -> (a,Rec o)
+    attrNormRecPair l x = (x,mkRec $ normSpread x l)
 
-    l :: Valence a => (a,Spread o) -> (a,Spread o)
-    l (x,y) = (x,normalize x y)
+    -- get a spread correspodning to an anttribute and normalize it
+    normSpread :: (Ord o,Valence a) => a -> Info o a -> Spread o 
+    normSpread x = (normalize x.getSpread x) 
 
-    g :: (o,Rec a) -> [(a,(o,Fraction))]
-    g (o,as) = map (\(a,v) -> (a,(o,v))) (fromRec as)
 
-    h :: Eq a => (a,b) -> (a,b) -> Bool
-    h = (==) `on` fst
-
-    k :: [(a,(o,Fraction))] -> (a,Spread o)
-    k ls = (fst.head $ ls,map snd ls)
-
-    f :: (Eq a,Valence a,Ord a,Ord o) => Info o a -> [(a,Spread o)]
-    f = map (l.k) . groupBy h . sortBy (compare `on` fst) . concatMap g . fromInfo
-
-val :: (Set o,Valence a) => Info o a -> Val o (OneTuple a)
+val :: (Set o,Valence a,Set a) => Info o a -> Val o (OneTuple a)
 val = mkOneTuple . valuation
 
 agg  :: Ord a => ([Double] -> Double) -> Val o a -> Rec o

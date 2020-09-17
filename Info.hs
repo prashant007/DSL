@@ -70,13 +70,13 @@ delDim :: (Ord a,Ord o) => Info o a -> [a] -> Info o a
 delDim = foldl delAttribute
 
 transpose :: (Ord a,Ord o) => Info o a -> Info a o
-transpose i = mkInfo $ map (\x -> (x,allAttrVals x i)) (allAttrs i)
-    where 
-        allAttrVals :: (Ord a,Ord o) => a -> Info o a -> Rec o 
-        allAttrVals a = mkRec . map (\(o,l) -> (o,fromJust.lookup a $ l)) . infoToList
+transpose i = mkInfo $ map (\x -> (x, (mkRec.getSpread x) i)) (allAttrs i)
+ 
+getSpread :: (Ord a,Ord o) => a -> Info o a -> Spread o 
+getSpread a = map (\(o,l) -> (o,fromJust.lookup a $ l)) . infoToList
 
-        infoToList :: Info o a -> [(o,[(a,Double)])]   
-        infoToList = map (\(o,l) -> (o,fromRec l)).fromInfo
+infoToList :: Info o a -> [(o,[(a,Double)])]   
+infoToList = map (\(o,l) -> (o,fromRec l)).fromInfo
 
-        allAttrs :: Info o a -> [a]
-        allAttrs = (map fst.snd.head.infoToList)
+allAttrs :: Info o a -> [a]
+allAttrs = (map fst.snd.head.infoToList)
