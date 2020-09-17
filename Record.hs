@@ -67,11 +67,6 @@ diff :: Ord a => Rec a -> Rec a -> Rec a
 diff = onRec2 (-)
 
 
--- Record value distribution
---
-type NumDist o = [(o,Double)]
-
-
 -- Projector type class projects an element from a tuple
 --
 class Projector a b | a -> b where

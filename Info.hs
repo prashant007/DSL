@@ -17,13 +17,18 @@ class (Bounded a,Enum a,Ord a) => Set a where
   members = enumFromTo minBound maxBound
 
 
+-- Tagged numbers
+--
+type Nums a = [(a,Double)]
+
+
 data Info o a = Info {unInfo :: M.Map o (Rec a)}
 
 mkInfo :: Ord o => [(o,Rec a)] -> Info o a
 mkInfo = Info . M.fromList
 
-info :: (Ord o,Ord a) => [(o,[(a,Double)])] -> Info o a
-info oas = mkInfo [(o,mkRec as) | (o,as) <- oas]
+info :: (Ord o,Ord a) => [(o,Nums a)] -> Info o a
+info ons = mkInfo [(o,mkRec ns) | (o,ns) <- ons]
 
 fromInfo :: Info o a -> [(o,Rec a)]
 fromInfo = M.toList . unInfo
@@ -36,11 +41,11 @@ instance (Show o,Show a) => Show (Info o a) where
   show = showSetLn . map showPair . fromInfo
 
 
-addAttribute :: (Ord o,Ord a) => a -> NumDist o -> Info o a -> Info o a
+addAttribute :: (Ord o,Ord a) => a -> Nums o -> Info o a -> Info o a
 addAttribute c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- fromInfo bs,a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
 
-gather :: (Set o,Set a) => (a -> NumDist o) -> Info o a
+gather :: (Set o,Set a) => (a -> Nums o) -> Info o a
 gather f = foldl (\o a -> addAttribute a (f a) o) objects members
 
 addAlternative :: (Ord o,Set a) => o -> (a -> Double) -> Info o a -> Info o a
@@ -54,7 +59,7 @@ delAttribute os a = mkInfo [(o,f a ov) | (o,ov) <- fromInfo os]
         where f x xs = Rec $ M.delete x (unRec xs)
 
 -- a function for modifying a particular attribute value for a specific object.
--- modAttribute :: (Ord a,Ord o) => Info o a -> a -> NumDist o -> Info o a
+-- modAttribute :: (Ord a,Ord o) => Info o a -> a -> Nums o -> Info o a
 -- modAttribute os a = addAttribute (delAttribute os a) a
 
 modAttribute :: (Ord a,Ord o) => Info o a -> a -> o -> Double ->  Info o a
@@ -66,10 +71,10 @@ delDim :: (Ord a,Ord o) => Info o a -> [a] -> Info o a
 delDim = foldl delAttribute
 
 transpose :: (Ord a,Ord o) => Info o a -> Info a o
-transpose i = mkInfo $ map (\x -> (x, (mkRec . toNumDist x) i)) (allAttrs i)
+transpose i = mkInfo $ map (\x -> (x, (mkRec . toNums x) i)) (allAttrs i)
 
-toNumDist :: (Ord a,Ord o) => a -> Info o a -> NumDist o
-toNumDist a = map (\(o,l) -> (o,fromJust.lookup a $ l)) . infoToList
+toNums :: (Ord a,Ord o) => a -> Info o a -> Nums o
+toNums a = map (\(o,l) -> (o,fromJust.lookup a $ l)) . infoToList
 
 infoToList :: Info o a -> [(o,[(a,Double)])]
 infoToList = map (\(o,l) -> (o,fromRec l)).fromInfo
