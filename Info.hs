@@ -10,8 +10,14 @@ import Text.Printf
 import Record
 
 
-data Info o a = Info {unInfo :: M.Map o (Rec a)}
+-- Types that can automatically enumerate their members
+--
+class (Bounded a,Enum a,Ord a) => Set a where
+  members :: [a]
+  members = enumFromTo minBound maxBound
 
+
+data Info o a = Info {unInfo :: M.Map o (Rec a)}
 
 mkInfo :: Ord o => [(o,Rec a)] -> Info o a
 mkInfo = Info . M.fromList
@@ -19,24 +25,16 @@ mkInfo = Info . M.fromList
 info :: (Ord o,Ord a) => [(o,[(a,Double)])] -> Info o a
 info oas = mkInfo [(o,mkRec as) | (o,as) <- oas]
 
--- newInfo :: Ord o => Info o a
--- newInfo = Info $ M.empty
-
 fromInfo :: Info o a -> [(o,Rec a)]
 fromInfo = M.toList . unInfo
 
-
--- agg :: (Rec a -> b) -> Info o a -> Rec o b
--- agg f = Info . M.map f . unInfo
+objects :: (Set o,Ord a) => Info o a
+objects = mkInfo [(o,emptyRec) | o <- members]
 
 
 instance (Show o,Show a) => Show (Info o a) where
-  show ts = let ts' = map (\(x,y) -> show x ++ " ->\n" ++ show y) (fromInfo ts)
-            in "{" ++ intercalate ",\n " ts' ++ "}\n"
+  show = showSetLn . map showPair . fromInfo
 
-
-objects :: (Set o,Ord a) => Info o a
-objects = mkInfo [(o,emptyRec) | o <- members]
 
 addAttribute :: (Ord o,Ord a) => a -> NumDist o -> Info o a -> Info o a
 addAttribute c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- fromInfo bs,a == b]

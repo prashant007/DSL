@@ -10,11 +10,6 @@ import Text.Printf
 import Data.Tuple.OneTuple (only,OneTuple)
 
 
-class (Bounded a,Enum a,Ord a) => Set a where
-  members :: [a]
-  members = enumFromTo minBound maxBound
-
-
 -- Syntactic sugar for pairs used in maps
 --
 (-->) :: a -> v -> (a,v)
@@ -44,14 +39,17 @@ onRec f =  mkRec . map (\(x,y) -> (x,f y)) . fromRec
 
 -- Printing record values
 --
-showPair :: Show a => (a,Double) -> String
-showPair (x,y) = show x ++ " -> " ++ printf "%.2f" y
+showPair :: (Show a,Show b) => (a,b) -> String
+showPair (x,y) = show x ++ " -> " ++ show y
+
+showPairD :: Show a => (a,Double) -> String
+showPairD (x,y) = show x ++ " -> " ++ printf "%.2f" y
 
 showSetLn :: [String] -> String
 showSetLn xs = "{" ++ intercalate ",\n " xs ++ "}"
 
 instance Show a => Show (Rec a) where
-  show ts = showSetLn (map showPair (fromRec ts))
+  show = showSetLn . map showPairD . fromRec
 
 
 -- Records as numbers
