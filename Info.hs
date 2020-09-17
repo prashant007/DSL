@@ -13,8 +13,6 @@ import Record
 data Info o a = Info {unInfo :: M.Map o (Rec a)}
 
 
--- data Info o a = Info {unInfo :: M.Map o (Rec a)}
-
 mkInfo :: Ord o => [(o,Rec a)] -> Info o a
 mkInfo = Info . M.fromList
 
@@ -33,18 +31,18 @@ fromInfo = M.toList . unInfo
 
 
 instance (Show o,Show a) => Show (Info o a) where
-  show ts = let ts' = map (\(x,y) -> show x ++ " ->\n" ++ show y) (fromInfo ts) 
+  show ts = let ts' = map (\(x,y) -> show x ++ " ->\n" ++ show y) (fromInfo ts)
             in "{" ++ intercalate ",\n " ts' ++ "}\n"
 
 
 objects :: (Set o,Ord a) => Info o a
 objects = mkInfo [(o,emptyRec) | o <- members]
 
-addAttribute :: (Ord o,Ord a) => a -> Spread o -> Info o a -> Info o a
+addAttribute :: (Ord o,Ord a) => a -> NumDist o -> Info o a -> Info o a
 addAttribute c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- fromInfo bs,a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
 
-gather :: (Set o,Set a) => (a -> Spread o) -> Info o a
+gather :: (Set o,Set a) => (a -> NumDist o) -> Info o a
 gather f = foldl (\o a -> addAttribute a (f a) o) objects members
 
 addAlternative :: (Ord o,Set a) => o -> (a -> Double) -> Info o a -> Info o a
@@ -58,7 +56,7 @@ delAttribute os a = mkInfo [(o,f a ov) | (o,ov) <- fromInfo os]
         where f x xs = Rec $ M.delete x (unRec xs)
 
 -- a function for modifying a particular attribute value for a specific object.
--- modAttribute :: (Ord a,Ord o) => Info o a -> a -> Spread o -> Info o a
+-- modAttribute :: (Ord a,Ord o) => Info o a -> a -> NumDist o -> Info o a
 -- modAttribute os a = addAttribute (delAttribute os a) a
 
 modAttribute :: (Ord a,Ord o) => Info o a -> a -> o -> Double ->  Info o a
@@ -70,12 +68,12 @@ delDim :: (Ord a,Ord o) => Info o a -> [a] -> Info o a
 delDim = foldl delAttribute
 
 transpose :: (Ord a,Ord o) => Info o a -> Info a o
-transpose i = mkInfo $ map (\x -> (x, (mkRec.getSpread x) i)) (allAttrs i)
- 
-getSpread :: (Ord a,Ord o) => a -> Info o a -> Spread o 
-getSpread a = map (\(o,l) -> (o,fromJust.lookup a $ l)) . infoToList
+transpose i = mkInfo $ map (\x -> (x, (mkRec . toNumDist x) i)) (allAttrs i)
 
-infoToList :: Info o a -> [(o,[(a,Double)])]   
+toNumDist :: (Ord a,Ord o) => a -> Info o a -> NumDist o
+toNumDist a = map (\(o,l) -> (o,fromJust.lookup a $ l)) . infoToList
+
+infoToList :: Info o a -> [(o,[(a,Double)])]
 infoToList = map (\(o,l) -> (o,fromRec l)).fromInfo
 
 allAttrs :: Info o a -> [a]

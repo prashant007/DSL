@@ -26,25 +26,25 @@ class Ord a => Valence a where
 -- Valuation
 --
 
-type Val o a = Info o a 
+type Val o a = Info o a
 
-valuation :: (Ord o,Set a,Valence a) => Info o a -> Val o a 
-valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members 
+valuation :: (Ord o,Set a,Valence a) => Info o a -> Val o a
+valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members
   where
     -- form pairs of attributes and records made from normalized spreads
     attrNormRecPair :: (Ord o,Valence a) => Info o a -> a -> (a,Rec o)
-    attrNormRecPair l x = (x,mkRec $ normSpread x l)
+    attrNormRecPair l x = (x,mkRec $ normNumDist x l)
 
     -- get a spread correspodning to an anttribute and normalize it
-    normSpread :: (Ord o,Valence a) => a -> Info o a -> Spread o 
-    normSpread x = (normalize x.getSpread x) 
+    normNumDist :: (Ord o,Valence a) => a -> Info o a -> NumDist o
+    normNumDist x = (normalize x . toNumDist x) 
 
 
 val :: (Set o,Valence a,Set a) => Info o a -> Val o (OneTuple a)
 val = mkOneTuple . valuation
 
 agg  :: Ord a => ([Double] -> Double) -> Val o a -> Rec o
-agg f = Rec . M.map (f . M.elems . unRec) . unInfo 
+agg f = Rec . M.map (f . M.elems . unRec) . unInfo
 
 total :: Ord a => Val o a -> Rec o
 total = agg sum
@@ -53,18 +53,18 @@ average :: Ord a => Val o a -> Rec o
 average = agg (\xs->sum xs/fromIntegral (length xs))
 
 
--- val' :: (Set o,Set a,Valence a) => (a -> Spread o)  -> Val o (OneTuple a)
+-- val' :: (Set o,Set a,Valence a) => (a -> NumDist o)  -> Val o (OneTuple a)
 -- val' = (val.gather)
 
-addAllAttrVal :: (Ord a,Ord o) => (a -> Spread o) -> [a] -> Info o a -> Val o a
+addAllAttrVal :: (Ord a,Ord o) => (a -> NumDist o) -> [a] -> Info o a -> Val o a
 addAllAttrVal f cs bs = foldl (\b c -> addAttrVal c (f c) b) bs cs
 
-addAttrVal :: (Ord a,Ord o) => a -> Spread o -> Info o a -> Info o a
+addAttrVal :: (Ord a,Ord o) => a -> NumDist o -> Info o a -> Info o a
 addAttrVal c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- bs',a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
           bs' = fromInfo bs
 
-normalize :: Valence a => a -> Spread o -> Spread o
+normalize :: Valence a => a -> NumDist o -> NumDist o
 normalize c as = let vs = [v | (_,v) <- as]
                      s = sum vs
                      s' = sum.map (\x -> 1/x) $ vs
@@ -89,7 +89,7 @@ maxVal = 100
 class (Projector a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
 
-  extend :: Val o a -> (c -> Spread b) -> Val o d
+  extend :: Val o a -> (c -> NumDist b) -> Val o d
   extend as f = extendBy as (gather f)
 
   extendBy :: Val o a -> Info b c -> Val o d
@@ -108,6 +108,6 @@ instance (Set c,Set d,Valence d,Ord o,Ord a,Ord b) => ExtendVal o (a,b,c) c d (a
 type Priority o = [(o,Fraction)]
 
 priority :: Val o a -> Priority o
-priority = map (\(o,a) -> (o,f a)).fromInfo 
+priority = map (\(o,a) -> (o,f a)).fromInfo
   where
-    f = sum.map snd . fromRec 
+    f = sum.map snd . fromRec
