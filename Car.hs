@@ -16,8 +16,8 @@ import Transformation
 --
 data Car     = Honda | BMW | Toyota deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Feature = Price | MPG | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
-data Opinion = Friend | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
-data Weight  = Weight deriving (Eq,Ord,Show,Enum,Bounded,Set)
+data Opinion = Personal | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
+data Weight  = One deriving (Eq,Ord,Show,Enum,Bounded,Set)
 
 instance Valence Feature where
   valence Price = False
@@ -62,24 +62,44 @@ opinions4 = modAttribute carFeatures Price Honda 45000
 
 -- (3) Weighing attributes
 --
-fWeights :: Info Feature Weight
-fWeights = addAttribute Weight [Price --> 1,MPG --> 1, Safety --> 1] objects
--- fWeights = addAttribute Weight [Price --> 1,MPG --> 2, Safety --> 1] objects
+one :: a -> [(Weight,a)]
+one x = [One --> x]
 
-carsVW :: Val Car (Feature,Weight)
-carsVW = mkOneTuple carsV `extendBy` fWeights
+equalWeights :: Info Feature Weight
+equalWeights = info [Price  --> one 1,
+                     MPG    --> one 1,
+                     Safety --> one 1]
+
+personalWeights :: Info Feature Weight
+personalWeights = info [Price  --> one 5,
+                        MPG    --> one 3,
+                        Safety --> one 2]
+-- equalWeights = addAttribute One [Price --> 1,MPG --> 1, Safety --> 1] objects
+-- equalWeights = addAttribute One [Price --> 1,MPG --> 2, Safety --> 1] objects
+
+carEW :: Val Car (Feature,Weight)
+carEW = mkOneTuple carsV `extendBy` equalWeights
+
+carPW :: Val Car (Feature,Weight)
+carPW = mkOneTuple carsV `extendBy` personalWeights
 
 
 -- (4) Adding dimensions to car opinions (opinions and weights)
 --
 featureOpinions :: Info Feature Opinion
-featureOpinions = info [Price  --> [Friend --> 0.5, Expert --> 0.2],
-                        MPG    --> [Friend --> 0.3, Expert --> 0.4],
-                        Safety --> [Friend --> 0.2, Expert --> 0.4]]
+-- featureOpinions = info [Price  --> [Personal --> 0.5, Expert --> 0.2],
+--                         MPG    --> [Personal --> 0.3, Expert --> 0.4],
+--                         Safety --> [Personal --> 0.2, Expert --> 0.4]]
+featureOpinions = info [Price  --> [Personal --> 5, Expert --> 2],
+                        MPG    --> [Personal --> 3, Expert --> 4],
+                        Safety --> [Personal --> 2, Expert --> 4]]
 
 weights :: Info Opinion Weight
-weights = addAttribute Weight [Friend --> 0.6,Expert --> 0.4] objects
+-- weights = addAttribute One [Personal --> 0.6,Expert --> 0.4] objects
+weights = info [Personal --> one 0.6,Expert --> one 0.4]
 
+onlyPersonal :: Info Opinion Weight
+onlyPersonal = addAttribute One [Personal --> 1,Expert --> 0] objects
 
 bRec :: Rec Feature
 bRec = mkRec [Price --> 36000, MPG  --> 24, Safety --> 70]
@@ -90,15 +110,24 @@ bInfo = mkInfo [BMW --> bRec]
 
 -- (5) Creating valuations for extended data
 --
--- carsUF :: Val Car (Opinion,Feature)
--- carsUF = extend carFeatures featureOpinions
+featureVal :: Val Car (OneTuple Feature)
+featureVal = mkOneTuple carsV
+
+carOpinions :: Val Car (Feature,Opinion)
+carOpinions = featureVal `extendBy` featureOpinions
 --
 -- carsWUF :: Val Car (Weight,Opinion,Feature)
 -- carsWUF = extend carsUF weights
 
 cars :: Val Car (Feature,Opinion,Weight)
 -- carFeatures = val carFeatures `extendBy` featureOpinions `extendBy` weights
-cars = mkOneTuple carsV `extendBy` featureOpinions `extendBy` weights
+-- cars = mkOneTuple carsV `extendBy` featureOpinions `extendBy` weights
+cars = carOpinions `extendBy` weights
+
+carsP :: Val Car (Feature,Opinion,Weight)
+-- carFeatures = val carFeatures `extendBy` featureOpinions `extendBy` weights
+carsP = mkOneTuple carsV `extendBy` featureOpinions `extendBy` onlyPersonal
+
 
 carPriority :: Priority Car
 carPriority = priority cars
