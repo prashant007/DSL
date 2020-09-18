@@ -64,12 +64,3 @@ ph (a,b,c) = do
       pd b
       putStrLn "\nBarrier:"
       pd c
-
-
-select :: Eq o => o -> Info o a -> Rec a 
-select o = fromJust . lookup o . fromInfo
-
-(!) :: Eq o => Val o a -> o -> Rec a  
-(!) = flip select 
-
-

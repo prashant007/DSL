@@ -2,6 +2,7 @@
 
 module Info where
 
+-- import Prelude hiding (compare)
 import qualified Data.Map.Strict as M
 import Data.List
 import Data.Maybe (fromJust)
@@ -33,12 +34,32 @@ info ons = mkInfo [(o,mkRec ns) | (o,ns) <- ons]
 fromInfo :: Info o a -> [(o,Rec a)]
 fromInfo = M.toList . unInfo
 
+onInfo :: (M.Map o (Rec a) -> M.Map o (Rec a)) -> Info o a -> Info o a
+onInfo f = Info . f . unInfo
+
+onInfo2 :: (M.Map o (Rec a) -> M.Map o (Rec a) -> M.Map o (Rec a)) ->
+           Info o a -> Info o a -> Info o a
+onInfo2 f i j = Info $ f (unInfo i) (unInfo j)
+
 objects :: (Set o,Ord a) => Info o a
 objects = mkInfo [(o,emptyRec) | o <- members]
 
 
+select :: Eq o => o -> Info o a -> Rec a
+select o = fromJust . lookup o . fromInfo
+-- select o = fromJust . lookup o . M.toList . unInfo
+
+(!) :: Eq o => Info o a -> o -> Rec a
+(!) = flip select
+
+diff :: (Eq o,Ord r) => Info o r -> o -> o -> Rec r
+diff i o1 o2 = i!o1 - i!o2
+
+showPairLn :: (Show a,Show b) => (a,b) -> String
+showPairLn (x,y) = show x ++ " -> \n" ++ show y
+
 instance (Show o,Show a) => Show (Info o a) where
-  show = showSetLn . map showPair . fromInfo
+  show = showSetLn . map showPairLn . fromInfo
 
 
 addAttribute :: (Ord o,Ord a) => a -> Nums o -> Info o a -> Info o a
@@ -51,6 +72,9 @@ gather f = foldl (\o a -> addAttribute a (f a) o) objects members
 addAlternative :: (Ord o,Set a) => o -> (a -> Double) -> Info o a -> Info o a
 addAlternative o f vs = Info $ M.insert o (mkRec ls) (unInfo vs)
     where ls = map (\x -> (x,f x)) members
+
+union :: (Ord o,Set a) => Info o a -> Info o a -> Info o a
+union = onInfo2 M.union
 
 
 -- a function for removing an attribute

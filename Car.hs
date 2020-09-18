@@ -3,7 +3,6 @@ module Car where
 
 import qualified Data.Map.Strict as M
 import Data.Tuple.OneTuple (only,OneTuple(..))
-import Prelude hiding (compare)
 
 import Record
 import Info
@@ -39,22 +38,12 @@ carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
 carsV :: Val Car Feature
 carsV = valuation carFeatures
 
-compare :: (Eq o,Ord r) => Val o r -> o -> o -> Rec r
-compare i o1 o2 = i!o1 - i!o2
-
-hvb :: Ord r => Val Car r -> Rec r
-hvb i = compare i Honda BMW
 
 -- (3) Some variation: adding/deleting/modifying a feature attribute
 --
-toyota :: Feature -> Double
-toyota Price  = 27000
-toyota Safety = 9.4
-toyota MPG    = 30
-
-
 threeCars :: Info Car Feature
-threeCars = addAlternative Toyota toyota carFeatures
+threeCars = carFeatures `union`
+            info [Toyota --> [Price --> 27000, MPG --> 30, Safety --> 9.4]]
 
 opinions3 = delAttribute carFeatures Price
 opinions4 = modAttribute carFeatures Price Honda 45000
@@ -146,7 +135,7 @@ type CarDecomp = Rec (Feature,Opinion,Weight)
 -- bmw = select BMW cars
 --
 vdCar :: CarDecomp
-vdCar = select Honda cars `diff` select BMW cars
+vdCar = cars!Honda - cars!BMW
 
 exp0 :: Explain (Feature,Opinion,Weight)
 exp0 = explain vdCar

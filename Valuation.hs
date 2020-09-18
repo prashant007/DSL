@@ -14,10 +14,7 @@ import Record
 import Info
 
 
-type Fraction = Double
-
-
--- Used to represent beneficial or non-beneficial attributes
+-- Distinguish beneficial and non-beneficial attributes
 --
 class Ord a => Valence a where
    valence :: a -> Bool
@@ -26,19 +23,26 @@ class Ord a => Valence a where
 
 -- Valuation
 --
-
 type Val o a = Info o a
+
+maxVal = 100
 
 valuation :: (Ord o,Set a,Valence a) => Info o a -> Val o a
 valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members
   where
-    -- form pairs of attributes and records made from normalized spreads
+    -- form pairs of attributes and records made from normalized Nums
     attrNormRecPair :: (Ord o,Valence a) => Info o a -> a -> (a,Rec o)
     attrNormRecPair l x = (x,mkRec $ normNums x l)
 
-    -- get a spread correspodning to an anttribute and normalize it
+    -- normalize Nums obtained from an anttribute
     normNums :: (Ord o,Valence a) => a -> Info o a -> Nums o
-    normNums x = (normalize x . toNums x)
+    normNums x = normalize x . toNums x
+
+    normalize :: Valence a => a -> Nums o -> Nums o
+    normalize c as = let vs = [v | (_,v) <- as]
+                         s = sum vs
+                         s' = sum.map (\x -> 1/x) $ vs
+                      in [(a,if valence c then (v/s)*maxVal else ((1/v)/s')*maxVal) | (a,v) <- as]
 
 
 val :: (Set o,Valence a,Set a) => Info o a -> Val o (OneTuple a)
@@ -54,9 +58,6 @@ average :: Ord a => Val o a -> Rec o
 average = agg (\xs->sum xs/fromIntegral (length xs))
 
 
--- val' :: (Set o,Set a,Valence a) => (a -> Nums o)  -> Val o (OneTuple a)
--- val' = (val.gather)
-
 addAllAttrVal :: (Ord a,Ord o) => (a -> Nums o) -> [a] -> Info o a -> Val o a
 addAllAttrVal f cs bs = foldl (\b c -> addAttrVal c (f c) b) bs cs
 
@@ -64,12 +65,6 @@ addAttrVal :: (Ord a,Ord o) => a -> Nums o -> Info o a -> Info o a
 addAttrVal c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- bs',a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
           bs' = fromInfo bs
-
-normalize :: Valence a => a -> Nums o -> Nums o
-normalize c as = let vs = [v | (_,v) <- as]
-                     s = sum vs
-                     s' = sum.map (\x -> 1/x) $ vs
-                 in [(a,if valence c then (v/s)*maxVal else ((1/v)/s')*maxVal) | (a,v) <- as]
 
 
 crtVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
@@ -84,8 +79,6 @@ mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
 mkOneTuple = mkInfo . map (\(o,a) -> (o,f a)) . fromInfo
   where
     f = mkRec . map (\(b,n) -> (OneTuple b,n)) . fromRec
-
-maxVal = 100
 
 class (Projector a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
@@ -106,7 +99,7 @@ instance (Set b,Set c,Valence c,Ord o,Ord a) => ExtendVal o (a,b) b c (a,b,c) wh
 instance (Set c,Set d,Valence d,Ord o,Ord a,Ord b) => ExtendVal o (a,b,c) c d (a,b,c,d) where
   mkTuple o ((a,b,c),_,d) n = (o,((a,b,c,d),n))
 
-type Priority o = [(o,Fraction)]
+type Priority o = [(o,Double)]
 
 priority :: Val o a -> Priority o
 priority = map (\(o,a) -> (o,f a)).fromInfo

@@ -39,8 +39,8 @@ onRec f =  mkRec . map (\(x,y) -> (x,f y)) . fromRec
 
 -- Printing record values
 --
-showPair :: (Show a,Show b) => (a,b) -> String
-showPair (x,y) = show x ++ " -> " ++ show y
+-- showPair :: (Show a,Show b) => (a,b) -> String
+-- showPair (x,y) = show x ++ " -> " ++ show y
 
 showPairD :: Show a => (a,Double) -> String
 showPairD (x,y) = show x ++ " -> " ++ printf "%.2f" y
@@ -63,8 +63,8 @@ instance Ord a => Num (Rec a) where
   signum = onRec signum
   fromInteger x = undefined
 
-diff :: Ord a => Rec a -> Rec a -> Rec a
-diff = onRec2 (-)
+-- diff :: Ord a => Rec a -> Rec a -> Rec a
+-- diff = onRec2 (-)
 
 
 -- Projector type class projects an element from a tuple
