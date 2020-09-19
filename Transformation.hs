@@ -7,7 +7,6 @@ import qualified Data.Map as M
 import Text.Printf
 import Data.List hiding (filter)
 import Prelude hiding (filter)
-
 import Record
 import Info
 import MDS hiding (compare)
@@ -40,6 +39,26 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) a
 instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) b
 instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) c
 instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
+
+-- ================== Selector ==========================================
+-- ========================================================================
+
+class (Eq a, Eq b,Projector a b) => Selector o a b | a -> b where
+  filter :: (a -> Bool) -> Info o a -> Info o a 
+  filter f = onInfo (M.map (filterRec f)) 
+
+  only :: b -> Info o a -> Info o a
+  only v =  filter (\x -> proj x == v)
+
+  except :: b -> Info o a -> Info o a
+  except v = filter (\x -> proj x /=v)
+
+
+instance (Eq a,Eq b) => Selector o (a,b) a 
+instance (Eq a,Eq b) => Selector o (a,b) b  
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) a 
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) b 
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) c  
 
 
 -- ================== SUMOUT ==============================================
