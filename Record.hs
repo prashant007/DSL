@@ -23,6 +23,10 @@ data Rec a = Rec {unRec :: M.Map a Double}
 fromRec :: Rec a -> [(a,Double)]
 fromRec = M.toList . unRec
 
+filterRec :: (a -> Bool) -> Rec a -> Rec a 
+filterRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
+
+
 mkRec :: Ord a => [(a,Double)] -> Rec a
 mkRec = Rec . M.fromList
 

@@ -5,7 +5,8 @@ module Transformation where
 import Data.Function
 import qualified Data.Map as M
 import Text.Printf
-import Data.List
+import Data.List hiding (filter)
+import Prelude hiding (filter)
 
 import Record
 import Info
@@ -27,6 +28,7 @@ class (Ord a,Ord b,SumOut a b) => Generalize a b | a -> b where
     generalize :: ValDiff a -> Explain b
     generalize = explain.sumOut
 
+
 instance (Ord a,Ord b) => Generalize (a,b) a
 instance (Ord a,Ord b) => Generalize (a,b) b
 
@@ -38,6 +40,7 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) a
 instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) b
 instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) c
 instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
+
 
 -- ================== SUMOUT ==============================================
 -- ========================================================================

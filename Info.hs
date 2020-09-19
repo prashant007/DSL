@@ -62,6 +62,7 @@ instance (Show o,Show a) => Show (Info o a) where
   show = showSetLn . map showPairLn . fromInfo
 
 
+
 addAttribute :: (Ord o,Ord a) => a -> Nums o -> Info o a -> Info o a
 addAttribute c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- fromInfo bs,a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
@@ -105,3 +106,26 @@ infoToList = map (\(o,l) -> (o,fromRec l)).fromInfo
 
 allAttrs :: Info o a -> [a]
 allAttrs = (map fst.snd.head.infoToList)
+
+-- ================== Selector ==========================================
+-- ========================================================================
+
+class (Eq a, Eq b,Projector a b) => Selector o a b | a -> b where
+  filter :: (a -> Bool) -> Info o a -> Info o a 
+  filter f = onInfo (M.map (filterRec f)) 
+
+  only :: b -> Info o a -> Info o a
+  only v =  filter (\x -> proj x == v)
+
+  except :: b -> Info o a -> Info o a
+  except v = filter (\x -> proj x /=v)
+
+
+instance (Eq a,Eq b) => Selector o (a,b) a 
+instance (Eq a,Eq b) => Selector o (a,b) b  
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) a 
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) b 
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) c  
+
+
+

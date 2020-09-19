@@ -2,7 +2,7 @@
 module Car where
 
 import qualified Data.Map.Strict as M
-import Data.Tuple.OneTuple (only,OneTuple(..))
+import Data.Tuple.OneTuple (OneTuple(..))
 
 import Record
 import Info
