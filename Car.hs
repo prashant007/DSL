@@ -16,7 +16,7 @@ import Transformation
 data Car     = Honda | BMW | Toyota deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Feature = Price | MPG | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Opinion = Personal | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
-data Weight  = One deriving (Eq,Ord,Show,Enum,Bounded,Set)
+data Weight  = Weighted deriving (Eq,Ord,Show,Enum,Bounded,Set)
 
 instance Valence Feature where
   valence Price = False
@@ -51,20 +51,20 @@ opinions4 = modAttribute carFeatures Price Honda 45000
 
 -- (3) Weighing attributes
 --
-one :: a -> [(Weight,a)]
-one x = [One --> x]
+weight :: a -> [(Weight,a)]
+weight x = [Weighted --> x]
 
 equalWeights :: Info Feature Weight
-equalWeights = info [Price  --> one 1,
-                     MPG    --> one 1,
-                     Safety --> one 1]
+equalWeights = info [Price  --> weight 1,
+                     MPG    --> weight 1,
+                     Safety --> weight 1]
 
 personalWeights :: Info Feature Weight
-personalWeights = info [Price  --> one 5,
-                        MPG    --> one 3,
-                        Safety --> one 2]
--- equalWeights = addAttribute One [Price --> 1,MPG --> 1, Safety --> 1] objects
--- equalWeights = addAttribute One [Price --> 1,MPG --> 2, Safety --> 1] objects
+personalWeights = info [Price  --> weight 5,
+                        MPG    --> weight 3,
+                        Safety --> weight 2]
+-- equalWeights = addAttribute Weighted [Price --> 1,MPG --> 1, Safety --> 1] objects
+-- equalWeights = addAttribute Weighted [Price --> 1,MPG --> 2, Safety --> 1] objects
 
 carEW :: Val Car (Feature,Weight)
 carEW = mkOneTuple carsV `extendBy` equalWeights
@@ -84,11 +84,11 @@ featureOpinions = info [Price  --> [Personal --> 5, Expert --> 2],
                         Safety --> [Personal --> 2, Expert --> 4]]
 
 weights :: Info Opinion Weight
--- weights = addAttribute One [Personal --> 0.6,Expert --> 0.4] objects
-weights = info [Personal --> one 0.6,Expert --> one 0.4]
+-- weights = addAttribute Weighted [Personal --> 0.6,Expert --> 0.4] objects
+weights = info [Personal --> weight 0.6,Expert --> weight 0.4]
 
 onlyPersonal :: Info Opinion Weight
-onlyPersonal = addAttribute One [Personal --> 1,Expert --> 0] objects
+onlyPersonal = addAttribute Weighted [Personal --> 1,Expert --> 0] objects
 
 bRec :: Rec Feature
 bRec = mkRec [Price --> 36000, MPG  --> 24, Safety --> 70]
