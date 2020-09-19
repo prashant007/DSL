@@ -43,22 +43,30 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 -- ================== Selector ==========================================
 -- ========================================================================
 
-class (Eq a, Eq b,Projector a b) => Selector o a b | a -> b where
-  filter :: (a -> Bool) -> Info o a -> Info o a
-  filter f = onInfo (M.map (filterRec f))
+-- class (Eq a, Eq b,Projector a b) => Selector o a b | a -> b where
+--   filter :: (a -> Bool) -> Info o a -> Info o a
+--   filter f = onInfo (M.map (filterRec f))
+--
+-- only :: Selector o a b => b -> Info o a -> Info o a
+-- only v = filter $ (==v) . proj
+--
+-- except :: Selector o a b => b -> Info o a -> Info o a
+-- except v = filter $ (/=v) . proj
+--
+-- instance (Eq a,Eq b) => Selector o (a,b) a
+-- instance (Eq a,Eq b) => Selector o (a,b) b
+-- instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) a
+-- instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) b
+-- instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) c
 
-only :: Selector o a b => b -> Info o a -> Info o a
+filter :: (a -> Bool) -> Info o a -> Info o a
+filter f = onInfo (M.map (filterRec f))
+
+only :: (Eq b,Projector a b) => b -> Info o a -> Info o a
 only v = filter $ (==v) . proj
 
-except :: Selector o a b => b -> Info o a -> Info o a
+except :: (Eq b,Projector a b) => b -> Info o a -> Info o a
 except v = filter $ (/=v) . proj
-
-
-instance (Eq a,Eq b) => Selector o (a,b) a
-instance (Eq a,Eq b) => Selector o (a,b) b
-instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) a
-instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) b
-instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) c
 
 
 -- ================== SUMOUT ==============================================

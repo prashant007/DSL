@@ -2,7 +2,7 @@
 module Car where
 
 import qualified Data.Map.Strict as M
-import Data.Tuple.OneTuple (only,OneTuple(..))
+import Data.Tuple.OneTuple (OneTuple(..))
 
 import Record
 import Info
@@ -79,9 +79,9 @@ featureOpinions :: Info Feature Opinion
 -- featureOpinions = info [Price  --> [Personal --> 0.5, Expert --> 0.2],
 --                         MPG    --> [Personal --> 0.3, Expert --> 0.4],
 --                         Safety --> [Personal --> 0.2, Expert --> 0.4]]
-featureOpinions = info [Price  --> [Personal --> 5, Expert --> 2],
-                        MPG    --> [Personal --> 3, Expert --> 4],
-                        Safety --> [Personal --> 2, Expert --> 4]]
+featureOpinions = info [Price  --> [Personal --> 5, Expert --> 3],
+                        MPG    --> [Personal --> 3, Expert --> 5],
+                        Safety --> [Personal --> 2, Expert --> 2]]
 
 weights :: Info Opinion Weight
 -- weights = addAttribute Weighted [Personal --> 0.6,Expert --> 0.4] objects
