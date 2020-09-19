@@ -2,7 +2,7 @@
 module Car where
 
 import qualified Data.Map.Strict as M
-import Data.Tuple.OneTuple (OneTuple(..))
+import Data.Tuple.OneTuple (only,OneTuple(..))
 
 import Record
 import Info
@@ -111,7 +111,8 @@ carOpinions = featureVal `extendBy` featureOpinions
 cars :: Val Car (Feature,Opinion,Weight)
 -- carFeatures = val carFeatures `extendBy` featureOpinions `extendBy` weights
 -- cars = mkOneTuple carsV `extendBy` featureOpinions `extendBy` weights
-cars = carOpinions `extendBy` weights
+-- cars = carOpinions `extendBy` weights
+cars = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.4]
 
 carsP :: Val Car (Feature,Opinion,Weight)
 -- carFeatures = val carFeatures `extendBy` featureOpinions `extendBy` weights

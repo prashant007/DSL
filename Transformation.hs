@@ -44,21 +44,21 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 -- ========================================================================
 
 class (Eq a, Eq b,Projector a b) => Selector o a b | a -> b where
-  filter :: (a -> Bool) -> Info o a -> Info o a 
-  filter f = onInfo (M.map (filterRec f)) 
+  filter :: (a -> Bool) -> Info o a -> Info o a
+  filter f = onInfo (M.map (filterRec f))
 
-  only :: b -> Info o a -> Info o a
-  only v =  filter (\x -> proj x == v)
+only :: Selector o a b => b -> Info o a -> Info o a
+only v = filter $ (==v) . proj
 
-  except :: b -> Info o a -> Info o a
-  except v = filter (\x -> proj x /=v)
+except :: Selector o a b => b -> Info o a -> Info o a
+except v = filter $ (/=v) . proj
 
 
-instance (Eq a,Eq b) => Selector o (a,b) a 
-instance (Eq a,Eq b) => Selector o (a,b) b  
-instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) a 
-instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) b 
-instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) c  
+instance (Eq a,Eq b) => Selector o (a,b) a
+instance (Eq a,Eq b) => Selector o (a,b) b
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) a
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) b
+instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) c
 
 
 -- ================== SUMOUT ==============================================
@@ -181,5 +181,3 @@ instance Ord a => GroupBy (a,b,c,d) a (b,c,d)
 instance Ord b => GroupBy (a,b,c,d) b (a,c,d)
 instance Ord c => GroupBy (a,b,c,d) c (a,b,d)
 instance Ord d => GroupBy (a,b,c,d) d (a,b,c)
-
-
