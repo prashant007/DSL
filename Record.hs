@@ -23,7 +23,7 @@ data Rec a = Rec {unRec :: M.Map a Double}
 fromRec :: Rec a -> [(a,Double)]
 fromRec = M.toList . unRec
 
-filterRec :: (a -> Bool) -> Rec a -> Rec a 
+filterRec :: (a -> Bool) -> Rec a -> Rec a
 filterRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
 
 
@@ -71,22 +71,22 @@ instance Ord a => Num (Rec a) where
 -- diff = onRec2 (-)
 
 
--- Projector type class projects an element from a tuple
+-- SubDim type class projects an element from a tuple
 --
-class Projector a b | a -> b where
+class SubDim a b | a -> b where
   proj :: a -> b
 
 
-instance Projector (OneTuple a) a where proj = only
+instance SubDim (OneTuple a) a where proj = only
 
-instance Projector (a,b) a where proj = fst
-instance Projector (a,b) b where proj = snd
+instance SubDim (a,b) a where proj = fst
+instance SubDim (a,b) b where proj = snd
 
-instance Projector (a,b,c) a where proj (a,b,c) = a
-instance Projector (a,b,c) b where proj (a,b,c) = b
-instance Projector (a,b,c) c where proj (a,b,c) = c
+instance SubDim (a,b,c) a where proj (a,b,c) = a
+instance SubDim (a,b,c) b where proj (a,b,c) = b
+instance SubDim (a,b,c) c where proj (a,b,c) = c
 
-instance Projector (a,b,c,d) a where proj (a,b,c,d) = a
-instance Projector (a,b,c,d) b where proj (a,b,c,d) = b
-instance Projector (a,b,c,d) c where proj (a,b,c,d) = c
-instance Projector (a,b,c,d) d where proj (a,b,c,d) = d
+instance SubDim (a,b,c,d) a where proj (a,b,c,d) = a
+instance SubDim (a,b,c,d) b where proj (a,b,c,d) = b
+instance SubDim (a,b,c,d) c where proj (a,b,c,d) = c
+instance SubDim (a,b,c,d) d where proj (a,b,c,d) = d

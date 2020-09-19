@@ -80,7 +80,7 @@ mkOneTuple = mkInfo . map (\(o,a) -> (o,f a)) . fromInfo
   where
     f = mkRec . map (\(b,n) -> (OneTuple b,n)) . fromRec
 
-class (Projector a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d | a b c -> d where
+class (SubDim a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
 
   extend :: Val o a -> (c -> Nums b) -> Val o d

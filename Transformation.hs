@@ -43,7 +43,7 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 -- ================== Selector ==========================================
 -- ========================================================================
 
--- class (Eq a, Eq b,Projector a b) => Selector o a b | a -> b where
+-- class (Eq a, Eq b,SubDim a b) => Selector o a b | a -> b where
 --   filter :: (a -> Bool) -> Info o a -> Info o a
 --   filter f = onInfo (M.map (filterRec f))
 --
@@ -62,10 +62,10 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 filter :: (a -> Bool) -> Info o a -> Info o a
 filter f = onInfo (M.map (filterRec f))
 
-only :: (Eq b,Projector a b) => b -> Info o a -> Info o a
+only :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
 only v = filter $ (==v) . proj
 
-except :: (Eq b,Projector a b) => b -> Info o a -> Info o a
+except :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
 except v = filter $ (/=v) . proj
 
 
@@ -82,7 +82,7 @@ except v = filter $ (/=v) . proj
 -- thereby giving us this attr val: {Fuel -> 0.048,Price -> 0.112}. SumOut is a type class
 -- used to achieve this effect on attr values.
 
-class (Projector a b,Ord b) => SumOut a b | a -> b where
+class (SubDim a b,Ord b) => SumOut a b | a -> b where
   sumOut :: Rec a -> Rec b
   sumOut = mkRec.map h.groupBy g.sortBy (compare `on` f).fromRec
     where
@@ -163,7 +163,7 @@ instance Reduce (a,b,c,d) (a,c,d) where
 
 type Factor b c = [(b,Rec c,Double)]
 
-class (SumOut a b,Reduce a c,Projector a b) => GroupBy a b c | a -> b c where
+class (SumOut a b,Reduce a c,SubDim a b) => GroupBy a b c | a -> b c where
   factorize :: (Ord a,Ord b,Ord c) => Rec a -> Factor b c
   factorize xs = zipWith (\x y -> (fst x,reduce y,snd x)) (h xs) (k xs)
       where h = sort.fromRec.sumOut
