@@ -7,6 +7,8 @@ import qualified Data.Map as M
 import Text.Printf
 import Data.List hiding (filter)
 import Prelude hiding (filter)
+import Data.Tuple.OneTuple (OneTuple(..))
+
 import Record
 import Info
 import MDS hiding (compare)
@@ -113,6 +115,9 @@ class Reduce a b | a -> b where
 
   reduce :: (Ord a,Ord b) => Rec a -> Rec b
   reduce = mkRec.map (\(x,n) -> (rmv x,n)).fromRec
+
+instance Reduce (OneTuple a) () where
+   rmv _ = ()
 
 instance Reduce (a,b) b where
   rmv :: (a,b) -> b

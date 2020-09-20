@@ -76,7 +76,6 @@ instance Ord a => Num (Rec a) where
 class SubDim a b | a -> b where
   proj :: a -> b
 
-
 instance SubDim (OneTuple a) a where proj = only
 
 instance SubDim (a,b) a where proj = fst

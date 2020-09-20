@@ -48,6 +48,11 @@ threeCars = carFeatures `union`
 opinions3 = delAttribute carFeatures Price
 opinions4 = modAttribute carFeatures Price Honda 45000
 
+vdThreeCars :: Rec Feature
+vdThreeCars = diff (valuation threeCars) Honda BMW
+
+-- aiThreeCars :: Factor Feature ()
+-- aiThreeCars = factorize (mkOneTuple vdThreeCars)
 
 -- (3) Weighing attributes
 --
@@ -139,15 +144,7 @@ vdCar :: CarDecomp
 vdCar = cars!Honda - cars!BMW
 
 exp0 :: Explain (Feature,Opinion,Weight)
-exp0 = explain vdCar
-
-
-explCar :: Explain (Feature,Opinion,Weight)
-explCar = explain vdCar
-
-
-showMDSexp0 = pmds exp0
-showDomexp0 = pdom exp0
+exp0@(vd0,sup0,bar0,doms0,mds0:_) = explain vdCar
 
 exp1 :: Explain Opinion
 exp1 = generalize vdCar
@@ -155,10 +152,9 @@ exp1 = generalize vdCar
 exp2 :: Explain Feature
 exp2 = generalize vdCar
 
-mds0 :: MDS (Feature,Opinion)
-mds0 = let (_,_,_,ms,_) = exp0
-       in  reduce (head ms)::Rec (Feature,Opinion)
+mds0r :: MDS (Feature,Opinion)
+mds0r = reduce mds0
 
-m01 = pFact (factorize mds0 :: Factor Feature Opinion)
-m02 = pFact (factorize mds0 :: Factor Opinion Feature)
+featureFocus = pFact (factorize mds0r :: Factor Feature Opinion)
+opinionFocus = pFact (factorize mds0r :: Factor Opinion Feature)
 -- m11 = factorize mds1 :: Factor Weight (Opinion,Feature)
