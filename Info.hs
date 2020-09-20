@@ -4,7 +4,7 @@ module Info where
 
 -- import Prelude hiding (compare)
 import qualified Data.Map.Strict as M
-import Data.List 
+import Data.List
 import Data.Maybe (fromJust)
 import Text.Printf
 
@@ -45,14 +45,13 @@ objects :: (Set o,Ord a) => Info o a
 objects = mkInfo [(o,emptyRec) | o <- members]
 
 
-select :: Eq o => o -> Info o a -> Rec a
-select o = fromJust . lookup o . fromInfo
--- select o = fromJust . lookup o . M.toList . unInfo
+select :: Ord o => o -> Info o a -> Rec a
+select o = fromJust . M.lookup o . unInfo
 
-(!) :: Eq o => Info o a -> o -> Rec a
+(!) :: Ord o => Info o a -> o -> Rec a
 (!) = flip select
 
-diff :: (Eq o,Ord r) => Info o r -> o -> o -> Rec r
+diff :: (Ord o,Ord r) => Info o r -> o -> o -> Rec r
 diff i o1 o2 = i!o1 - i!o2
 
 showPairLn :: (Show a,Show b) => (a,b) -> String
@@ -105,5 +104,3 @@ infoToList = map (\(o,l) -> (o,fromRec l)).fromInfo
 
 allAttrs :: Info o a -> [a]
 allAttrs = (map fst.snd.head.infoToList)
-
-
