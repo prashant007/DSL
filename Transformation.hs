@@ -25,7 +25,7 @@ import MDS hiding (compare)
 -- Generalize type class realizes this need by providing an explanation in
 -- terms of one level at a time.
 
-class (Ord a,Ord b,SumOut a b) => Generalize a b | a -> b where
+class (Ord a,Ord b,SubDim a b) => Generalize a b | a -> b where
     generalize :: ValDiff a -> Explain b
     generalize = explain.sumOut
 
@@ -84,24 +84,15 @@ except v = filter $ (/=v) . proj
 -- thereby giving us this attr val: {Fuel -> 0.048,Price -> 0.112}. SumOut is a type class
 -- used to achieve this effect on attr values.
 
-class (SubDim a b,Ord b) => SumOut a b | a -> b where
-  sumOut :: Rec a -> Rec b
-  sumOut = mkRec.map h.groupBy g.sortBy (compare `on` f).fromRec
-    where
-        h xs = ((f.head) xs,(sum.map snd) xs)
-        g x y = f x == f y
-        f = proj.fst
+-- class (SubDim a b,Ord b) => SumOut a b | a -> b where
 
-instance Ord b => SumOut (a,b) b
-instance Ord a => SumOut (a,b) a
-instance Ord a => SumOut (a,b,c) a
-instance Ord b => SumOut (a,b,c) b
-instance Ord c => SumOut (a,b,c) c
-instance Ord a => SumOut (a,b,c,d) a
-instance Ord b => SumOut (a,b,c,d) b
-instance Ord c => SumOut (a,b,c,d) c
-instance Ord d => SumOut (a,b,c,d) d
 
+sumOut :: (SubDim a b,Ord b) => Rec a -> Rec b
+sumOut = mkRec.map h.groupBy g.sortBy (compare `on` f).fromRec
+  where
+      h xs = ((f.head) xs,(sum.map snd) xs)
+      g x y = f x == f y
+      f = proj.fst
 
 -- ===================== REDUCE =============================================
 -- ==========================================================================
@@ -181,16 +172,16 @@ formatFact ls = map percentFact ls
                    in mapRec (mkPercent sumR) x  
 
 
-class (SumOut a b,Reduce a c,SubDim a b) => GroupBy a b c | a -> b c where
-  factorize :: (Ord a,Ord b,Ord c) => Rec a -> Factor b c
-  factorize xs = formatFact $ zipWith mkFact (attrImpact xs) (constituents xs)
-      where mkFact = \x y -> (fst x,y,snd x)
-            -- impact of individual attributes 
-            attrImpact = sort . fromRec . sumOut          
-            -- constituents of each sum value produced by attrImpact function 
-            constituents = map (reduce.mkRec) . sortNgroup . fromRec
-            -- group similar elements 
-            sortNgroup = groupBy ((==) `on` proj.fst) . sortBy (compare `on` proj.fst)
+-- class (Reduce a c,SubDim a b) => GroupBy a b c | a -> b c where
+factorize :: (Ord a,Ord b,Ord c,Reduce a c,SubDim a b) => Rec a -> Factor b c
+factorize xs = formatFact $ zipWith mkFact (attrImpact xs) (constituents xs)
+    where mkFact = \x y -> (fst x,y,snd x)
+          -- impact of individual attributes 
+          attrImpact = sort . fromRec . sumOut          
+          -- constituents of each sum value produced by attrImpact function 
+          constituents = map (reduce.mkRec) . sortNgroup . fromRec
+          -- group similar elements 
+          sortNgroup = groupBy ((==) `on` proj.fst) . sortBy (compare `on` proj.fst)
 
 
 
@@ -200,14 +191,3 @@ pFact = mapM_ pFactH
     pFactH (b,a,v) = putStrLn $ show b ++ " : " ++ printf "%.2f" v ++ " (" ++ show a ++ ") \n"
 
 
-instance Ord a => GroupBy (a,b) a b
-instance Ord b => GroupBy (a,b) b a
-
-instance Ord a => GroupBy (a,b,c) a (b,c)
-instance Ord b => GroupBy (a,b,c) b (a,c)
-instance Ord c => GroupBy (a,b,c) c (a,b)
-
-instance Ord a => GroupBy (a,b,c,d) a (b,c,d)
-instance Ord b => GroupBy (a,b,c,d) b (a,c,d)
-instance Ord c => GroupBy (a,b,c,d) c (a,b,d)
-instance Ord d => GroupBy (a,b,c,d) d (a,b,c)
