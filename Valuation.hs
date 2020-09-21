@@ -66,29 +66,28 @@ addAttrVal c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- bs',a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
           bs' = fromInfo bs
 
-
+-- what does the name "ctrVal" stand for ???
+--
 crtVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
-crtVal = mkInfo.map f.groupBy h.sortBy (compare `on` fst)
+crtVal = mkInfo . map f . groupBy ((==) `on` fst) . sortBy (compare `on` fst)
   where
-    f ls = (fst.head $ ls, mkRec . map snd $ ls)
-    h :: Eq a => (a,b) -> (a,c) -> Bool
-    h = \x y -> fst x == fst y
-
+    f xs@((x,_):_) = (x, mkRec . map snd $ xs)
 
 mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
-mkOneTuple = mkInfo . map (\(o,a) -> (o,f a)) . fromInfo
-  where
-    f = mkRec . map (\(b,n) -> (OneTuple b,n)) . fromRec
+mkOneTuple = mapInfo $ onRec (M.mapKeys OneTuple)
 
 class (SubDim a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d | a b c -> d where
   mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
 
-  extend :: Val o a -> (c -> Nums b) -> Val o d
-  extend as f = extendBy as (gather f)
+extendBy :: ExtendVal o a b c d => Val o a -> Info b c -> Val o d
+extendBy as bs = crtVal
+                   [mkTuple o (aa,b,cc) ((av*cv)/maxVal) |
+                    (o,a) <- fromInfo as,             (aa,av) <- fromRec a,
+                    (b,c) <- (fromInfo.valuation) bs, (cc,cv) <- fromRec c,
+                    proj aa==b]
 
-  extendBy :: Val o a -> Info b c -> Val o d
-  extendBy as bs = crtVal [mkTuple o (aa,b,cc) ((av*cv)/maxVal) | (o,a) <- fromInfo as, (aa,av) <- fromRec a,
-                           (b,c) <- (fromInfo.valuation) bs, (cc,cv) <- fromRec c, proj aa==b]
+-- extend :: ExtendVal o a b c d => Val o a -> (c -> Nums b) -> Val o d
+-- extend as f = extendBy as (gather f)
 
 instance (Set a,Set b,Valence b,Ord o) => ExtendVal o (OneTuple a) a b (a,b) where
   mkTuple o (a,_,b) n = (o,((only a,b),n))

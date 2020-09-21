@@ -34,16 +34,18 @@ info ons = mkInfo [(o,mkRec ns) | (o,ns) <- ons]
 fromInfo :: Info o a -> [(o,Rec a)]
 fromInfo = M.toList . unInfo
 
-onInfo :: (M.Map o (Rec a) -> M.Map o (Rec a)) -> Info o a -> Info o a
+onInfo :: (M.Map o (Rec a) -> M.Map o (Rec b)) -> Info o a -> Info o b
 onInfo f = Info . f . unInfo
 
-onInfo2 :: (M.Map o (Rec a) -> M.Map o (Rec a) -> M.Map o (Rec a)) ->
-           Info o a -> Info o a -> Info o a
+onInfo2 :: (M.Map o (Rec a) -> M.Map o (Rec b) -> M.Map o (Rec c)) ->
+           Info o a -> Info o b -> Info o c
 onInfo2 f i j = Info $ f (unInfo i) (unInfo j)
+
+mapInfo :: Ord a => (Rec a -> Rec b) -> Info o a -> Info o b
+mapInfo =  onInfo . M.map
 
 objects :: (Set o,Ord a) => Info o a
 objects = mkInfo [(o,emptyRec) | o <- members]
-
 
 select :: Ord o => o -> Info o a -> Rec a
 select o = fromJust . M.lookup o . unInfo
@@ -65,8 +67,8 @@ addAttribute :: (Ord o,Ord a) => a -> Nums o -> Info o a -> Info o a
 addAttribute c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- fromInfo bs,a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
 
-gather :: (Set o,Set a) => (a -> Nums o) -> Info o a
-gather f = foldl (\o a -> addAttribute a (f a) o) objects members
+-- gather :: (Set o,Set a) => (a -> Nums o) -> Info o a
+-- gather f = foldl (\o a -> addAttribute a (f a) o) objects members
 
 addAlternative :: (Ord o,Set a) => o -> (a -> Double) -> Info o a -> Info o a
 addAlternative o f vs = Info $ M.insert o (mkRec ls) (unInfo vs)

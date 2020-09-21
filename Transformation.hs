@@ -62,7 +62,7 @@ instance (Ord a,Ord b,Ord c,Ord d) => Generalize (a,b,c,d) d
 -- instance (Eq a,Eq b,Eq c) => Selector o (a,b,c) c
 
 filter :: (a -> Bool) -> Info o a -> Info o a
-filter f = onInfo (M.map (filterRec f))
+filter f = onInfo (M.map (subRec f))
 
 only :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
 only v = filter $ (==v) . proj

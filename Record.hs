@@ -20,25 +20,27 @@ x --> y = (x,y)
 --
 data Rec a = Rec {unRec :: M.Map a Double}
 
-fromRec :: Rec a -> [(a,Double)]
-fromRec = M.toList . unRec
-
-filterRec :: (a -> Bool) -> Rec a -> Rec a
-filterRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
-
+emptyRec :: Ord a => Rec a
+emptyRec = mkRec []
 
 mkRec :: Ord a => [(a,Double)] -> Rec a
 mkRec = Rec . M.fromList
 
-emptyRec :: Ord a => Rec a
-emptyRec = mkRec []
+fromRec :: Rec a -> [(a,Double)]
+fromRec = M.toList . unRec
 
-onRec2 :: Ord a => (Double -> Double -> Double) -> Rec a -> Rec a -> Rec a
-onRec2 g x y =  Rec $ merge preserveMissing preserveMissing
+onRec :: Ord a => (M.Map a Double -> M.Map b Double) -> Rec a -> Rec b
+onRec f =  Rec . f . unRec
+
+mapRec :: Ord a => (Double -> Double) -> Rec a -> Rec a
+mapRec f =  Rec . M.map f . unRec
+
+mapRec2 :: Ord a => (Double -> Double -> Double) -> Rec a -> Rec a -> Rec a
+mapRec2 g x y =  Rec $ merge preserveMissing preserveMissing
                        (zipWithMatched (\_->g)) (unRec x) (unRec y)
 
-onRec :: Ord a => (Double -> Double) -> Rec a -> Rec a
-onRec f =  mkRec . map (\(x,y) -> (x,f y)) . fromRec
+subRec :: (a -> Bool) -> Rec a -> Rec a
+subRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
 
 
 -- Printing record values
@@ -59,16 +61,16 @@ instance Show a => Show (Rec a) where
 -- Records as numbers
 --
 instance Ord a => Num (Rec a) where
-  (+) = onRec2 (+)
-  (*) = onRec2 (*)
-  (-) = onRec2 (-)
-  negate = onRec negate
-  abs    = onRec abs
-  signum = onRec signum
+  (+) = mapRec2 (+)
+  (*) = mapRec2 (*)
+  (-) = mapRec2 (-)
+  negate = mapRec negate
+  abs    = mapRec abs
+  signum = mapRec signum
   fromInteger x = undefined
 
 -- diff :: Ord a => Rec a -> Rec a -> Rec a
--- diff = onRec2 (-)
+-- diff = mapRec2 (-)
 
 
 -- SubDim type class projects an element from a tuple
