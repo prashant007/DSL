@@ -168,19 +168,36 @@ instance Reduce (a,b,c,d) (a,c,d) where
 
 type Factor b c = [(b,Rec c,Double)]
 
+
+-- this changes factor values from absolutes values to percentages 
+formatFact :: Ord c => Factor b c -> Factor b c 
+formatFact ls = map percentFact ls   
+  where
+    sumF = sum.map (\(x,y,z) -> z) $ ls
+    mkPercent s v = (v/s)*100
+    percentFact = \(x,y,z) -> (x,percentRec y,mkPercent sumF z)
+    percentRec :: Ord a => Rec a -> Rec a 
+    percentRec x = let sumR = sum.map snd.fromRec $ x
+                   in mapRec (mkPercent sumR) x  
+
+
 class (SumOut a b,Reduce a c,SubDim a b) => GroupBy a b c | a -> b c where
   factorize :: (Ord a,Ord b,Ord c) => Rec a -> Factor b c
-  factorize xs = zipWith (\x y -> (fst x,reduce y,snd x)) (h xs) (k xs)
-      where h = sort.fromRec.sumOut
-            k = map mkRec.groupBy g.sortBy (compare `on` f).fromRec
-            g x y = f x == f y
-            f = proj.fst
+  factorize xs = formatFact $ zipWith mkFact (attrImpact xs) (constituents xs)
+      where mkFact = \x y -> (fst x,y,snd x)
+            -- impact of individual attributes 
+            attrImpact = sort . fromRec . sumOut          
+            -- constituents of each sum value produced by attrImpact function 
+            constituents = map (reduce.mkRec) . sortNgroup . fromRec
+            -- group similar elements 
+            sortNgroup = groupBy ((==) `on` proj.fst) . sortBy (compare `on` proj.fst)
 
 
-pFact :: (Show a,Show b) => Factor a b -> IO ()
-pFact = mapM_ pFactH
+
+pFact :: (Show a,Show b,Ord b) => Factor a b -> IO ()
+pFact = mapM_ pFactH 
   where
-    pFactH (b,a,v) = putStrLn $ show b ++ " : " ++ printf "%.3f" v ++ " (" ++ show a ++ ") \n"
+    pFactH (b,a,v) = putStrLn $ show b ++ " : " ++ printf "%.2f" v ++ " (" ++ show a ++ ") \n"
 
 
 instance Ord a => GroupBy (a,b) a b

@@ -23,11 +23,14 @@ data Rec a = Rec {unRec :: M.Map a Double}
 emptyRec :: Ord a => Rec a
 emptyRec = mkRec []
 
-mkRec :: Ord a => [(a,Double)] -> Rec a
-mkRec = Rec . M.fromList
-
 fromRec :: Rec a -> [(a,Double)]
 fromRec = M.toList . unRec
+
+filterRec :: (a -> Bool) -> Rec a -> Rec a
+filterRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
+
+mkRec :: Ord a => [(a,Double)] -> Rec a
+mkRec = Rec . M.fromList
 
 onRec :: Ord a => (M.Map a Double -> M.Map b Double) -> Rec a -> Rec b
 onRec f =  Rec . f . unRec
@@ -42,6 +45,9 @@ mapRec2 g x y =  Rec $ merge preserveMissing preserveMissing
 subRec :: (a -> Bool) -> Rec a -> Rec a
 subRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
 
+
+foldRec :: (M.Map a Double -> b) -> Rec a -> b 
+foldRec f = f.unRec
 
 -- Printing record values
 --
