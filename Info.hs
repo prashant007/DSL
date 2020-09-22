@@ -76,7 +76,6 @@ addAlternative o f vs = Info $ M.insert o (mkRec ls) (unInfo vs)
 union :: (Ord o,Set a) => Info o a -> Info o a -> Info o a
 union = onInfo2 M.union
 
-
 -- a function for removing an attribute
 delAttribute :: (Ord o,Ord a) => Info o a -> a -> Info o a
 delAttribute os a = mkInfo [(o,f a ov) | (o,ov) <- fromInfo os]
@@ -102,6 +101,10 @@ toNums a = map (\(o,l) -> (o,fromJust.lookup a $ l)) . infoToList
 
 infoToList :: Info o a -> [(o,[(a,Double)])]
 infoToList = map (\(o,l) -> (o,fromRec l)).fromInfo
+
+listToInfo :: (Ord o,Ord a) => [(o,(a,Double))] -> Info o a
+listToInfo = mkInfo . map assocRec . sortNGroupBy fst 
+  where assocRec xs@((x,_):_) = (x, mkRec . map snd $ xs)
 
 allAttrs :: Info o a -> [a]
 allAttrs = (map fst.snd.head.infoToList)

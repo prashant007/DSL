@@ -67,17 +67,8 @@ addAttrVal c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- bs',a == b]
           bs' = fromInfo bs
 
 
--- what does the name "ctrVal" stand for ???
---
-mkVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
-mkVal = mkInfo . map assocRec . sortNGroupBy fst 
-  where
-    -- associate a record with every object from the list created by sortNGroupBy function 
-    assocRec xs@((x,_):_) = (x, mkRec . map snd $ xs)
-
 mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
 mkOneTuple = mapInfo $ onRec (M.mapKeys OneTuple)
-
 
 class Tuple a c d | a c -> d where
   mkTuple :: a -> c -> d 
@@ -95,8 +86,8 @@ instance Tuple (a,b,c,d) e (a,b,c,d,e) where
   mkTuple (a,b,c,d) e = (a,b,c,d,e)
 
 -- extendBy :: (Ord o,Ord b,Valence c,Set c,Ord d,Tuple a c d,Split a b e) => Val o a -> Info b c -> Val o d
--- extendBy :: (Ord o,Ord b,Valence c,Set c,Ord d,Tuple a c d,SubDim a b) => Val o a -> Info b c -> Val o d
-extendBy as bs = mkVal
+extendBy :: (Ord o,Ord b,Valence c,Set c,Ord d,Tuple a c d,SubDim a b) => Val o a -> Info b c -> Val o d
+extendBy as bs = listToInfo 
                    [(o,(mkTuple aa cc,(av*cv)/maxVal)) |
                     (o,a) <- fromInfo as,             (aa,av) <- fromRec a,
                     (b,c) <- (fromInfo.valuation) bs, (cc,cv) <- fromRec c,

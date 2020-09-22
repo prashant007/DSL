@@ -21,19 +21,15 @@ type MDS a = Rec a
 type Dom a = Rec a
 type Explain b = (ValDiff b,Support b,Barrier b,[Dom b],[MDS b])
 
-
 explain :: Ord a => ValDiff a -> Explain a
-explain v = (v,mkRec support,mkRec barrier, map mkRec ls,
-             map mkRec $ reverse $ sortBy (Prelude.compare `on` f) ls')
+explain v = (v,mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss) 
   where
-    d = map (\(x,y) -> (x,y)) (fromRec v)
-    (support,barrier) = partition (\(x,y) -> y>0) d
-    f = abs.sum.map snd
-    btotal = f barrier
-    doms = [d | d <- subsequences support, f d > btotal]
-    ls = sortBy (Prelude.compare `on` length) doms
-    ls'= takeWhile (\p -> length p == (length.head) ls) ls
-
+    (support,barrier) = partition (\(x,y) -> y>0) (fromRec v)
+    absSum = abs.sum.map snd
+    doms   = [d | d <- subsequences support, absSum d > absSum barrier]
+    sdoms  = sortBy (compare `on` length) doms
+    mdss   = takeWhile (\p -> length p == (length.head) sdoms) sdoms
+    smdss  = reverse $ sortBy (compare `on` absSum) mdss
 
 -- ========================= PRITNTING EXPLANATIONS =====================
 -- ======================================================================

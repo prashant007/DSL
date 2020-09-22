@@ -25,7 +25,7 @@ import MDS hiding (compare)
 -- terms of one level at a time.
 
 -- generalize :: (Ord b,Split a b c) => ValDiff a -> Explain b
-generalize :: (Ord b,SubDim a b) => ValDiff a -> Explain b
+generalize :: (Ord a,Ord b,SubDim a b) => ValDiff a -> Explain b
 generalize = explain.sumOut
 
 -- ================== Selector ==========================================
@@ -38,11 +38,9 @@ filter f = onInfo (M.map (subRec f))
 only :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
 only v = filter $ (==v) . focus 
 
-
 -- except :: (Eq b,Split a b c) => b -> Info o a -> Info o a
 except :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
 except v = filter $ (/=v) . focus 
-
 
 -- ================== SUMOUT ==============================================
 -- ========================================================================
@@ -57,18 +55,13 @@ except v = filter $ (/=v) . focus
 -- thereby giving us this attr val: {Fuel -> 0.048,Price -> 0.112}. SumOut is a type class
 -- used to achieve this effect on attr values.
 
-
--- focusElem :: Split a c d =>  (a,b) -> c 
-focusElem :: SubDim a c =>  (a,b) -> c 
-focusElem = focus . fst 
-
+fstFocus :: SubDim a c =>  (a,b) -> c 
+fstFocus = (focus.fst)
 
 -- sumOut :: (Split a b c,Ord b) => Rec a -> Rec b
-sumOut :: (SubDim a b,Ord b) => Rec a -> Rec b
-sumOut = mkRec. map mkPair. sortNGroupBy focusElem . fromRec
-  where
-      focusElem = focus . fst  
-      mkPair xs@(x:_) = (focusElem x,sum.map snd $ xs)
+sumOut :: (SubDim a b,Ord a,Ord b) => Rec a -> Rec b
+sumOut =  mkRec . foldRec (map mkPair . sortNGroupBy fstFocus)
+  where mkPair xs@((x,_):_) = (focus x,sum.map snd $ xs)
       
 
 -- ===================== REDUCE =============================================
@@ -78,9 +71,10 @@ sumOut = mkRec. map mkPair. sortNGroupBy focusElem . fromRec
 -- the elements of an Norm value. The Reduce type class provides a way, using
 -- the denoise function to achieve this.
 
+
 -- reduce :: (Ord a,Ord b,Split a c b) => Rec a -> Rec b
 reduce :: (Ord a,Ord b,Reduce a b) => Rec a -> Rec b
-reduce = mkRec.map (\(x,n) -> (remainder x,n)).fromRec
+reduce = onRec (M.mapKeys remainder)
 
 -- ========================== FACTORING =====================================
 -- ==========================================================================
@@ -103,18 +97,16 @@ formatFact ls = map percentFact ls
     percentFact = \(x,y,z) -> (x,percentRec y,mkPercent sumF z)
 
     percentRec :: Ord a => Rec a -> Rec a 
-    percentRec x = let sumR = sum.map snd.fromRec $ x
+    percentRec x = let sumR = foldRec (sum.map snd) $ x
                    in mapRec (mkPercent sumR) x  
 
 
 -- factorize :: (Ord a,Ord b,Ord c,Split a b c) => Rec a -> Factor b constituents
 factorize :: (Ord a,Ord b,Ord c,SubDim a b,Reduce a c) => Rec a -> Factor b c
-factorize xs = formatFact $ zipWith mkFact (attrImpact xs) (constituents xs)
-    where mkFact = \x y -> (fst x,y,snd x)
-          -- impact of individual attributes 
-          attrImpact = sort . fromRec . sumOut          
-          -- constituents of each sum value produced by attrImpact function 
-          constituents = map (reduce.mkRec) . sortNGroupBy focusElem . fromRec
+factorize xs = formatFact $ zipWith mkFact (attrScore xs) (groupRecBy focus xs)
+    where mkFact = \x y -> (fst x,reduce y,snd x)
+          -- impact/score of individual attributes 
+          attrScore = foldRec sort . sumOut          
 
 
 pFact :: (Show a,Show b) => Factor a b -> IO ()
@@ -124,7 +116,7 @@ pFact = mapM_ pFactH
     pFactH (b,c,v) = putStrLn $ show b ++ " : " ++ printf "%.2f" v ++ " %\n " ++ showRec c ++ " \n"
     
     showRec :: Show a => Rec a -> String
-    showRec = showSetLn . map showPairP . fromRec
+    showRec = showSetLn . foldRec (map showPairP) 
 
     showPairP :: Show a => (a,Double) -> String
     showPairP (x,y) = show x ++ " -> " ++ printf "%.2f" y ++ " %"

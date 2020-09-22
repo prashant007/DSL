@@ -41,11 +41,22 @@ mapRec2 :: Ord a => (Double -> Double -> Double) -> Rec a -> Rec a -> Rec a
 mapRec2 g x y =  Rec $ merge preserveMissing preserveMissing
                        (zipWithMatched (\_->g)) (unRec x) (unRec y)
 
+
+-- create and group records based on a function 
+groupRecBy :: (Ord a,Ord b) => (a -> b) -> Rec a -> [Rec a]
+groupRecBy f = map mkRec . sortNGroupBy (f.fst) . fromRec 
+
+
+-- create a list of lists by grouping "similar" elements based on a function 
+sortNGroupBy :: Ord b => (a -> b) -> [a] -> [[a]]
+sortNGroupBy f = groupBy ((==) `on` f) . sortBy (compare `on` f)
+
+
 subRec :: (a -> Bool) -> Rec a -> Rec a
 subRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
 
-foldRec :: (M.Map a Double -> b) -> Rec a -> b 
-foldRec f = f.unRec
+foldRec :: ([(a,Double)] -> b) -> Rec a -> b 
+foldRec f = f . fromRec  
 
 -- Printing record values
 --
@@ -188,5 +199,6 @@ instance Reduce (a,b,c,d) (a,c,d) where
 instance Reduce (a,b,c,d) (a,b,d) where 
   remainder (a,b,c,d) = (a,b,d)  
 
-sortNGroupBy :: Ord b => (a -> b) -> [a] -> [[a]]
-sortNGroupBy f = groupBy ((==) `on` f) . sortBy (compare `on` f)
+
+-- constituents = map (reduce.mkRec) . sortNGroupBy focusElem . fromRec
+
