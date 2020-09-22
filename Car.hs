@@ -124,8 +124,8 @@ carsP :: Val Car (Feature,Opinion,Weight)
 carsP = mkOneTuple carsV `extendBy` featureOpinions `extendBy` onlyPersonal
 
 
-carPriority :: Priority Car
-carPriority = priority cars
+-- carPriority :: Priority Car
+-- carPriority = priority cars
 
 
 -- (6) Explaining decisions
@@ -157,4 +157,3 @@ mds0r = reduce mds0
 
 featureFocus = pFact (factorize mds0r :: Factor Feature Opinion)
 opinionFocus = pFact (factorize mds0r :: Factor Opinion Feature)
--- m11 = factorize mds1 :: Factor Weight (Opinion,Feature)

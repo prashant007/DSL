@@ -66,41 +66,48 @@ addAttrVal c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- bs',a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
           bs' = fromInfo bs
 
+
 -- what does the name "ctrVal" stand for ???
 --
-crtVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
-crtVal = mkInfo . map f . groupBy ((==) `on` fst) . sortBy (compare `on` fst)
+mkVal :: (Ord b,Ord o) => [(o,(b,Double))] -> Val o b
+mkVal = mkInfo . map assocRec . sortNGroupBy fst 
   where
-    f xs@((x,_):_) = (x, mkRec . map snd $ xs)
+    -- associate a record with every object from the list created by sortNGroupBy function 
+    assocRec xs@((x,_):_) = (x, mkRec . map snd $ xs)
 
 mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
 mkOneTuple = mapInfo $ onRec (M.mapKeys OneTuple)
 
-class (SubDim a b,Ord d,Ord o,Set b,Set c,Valence c) => ExtendVal o a b c d | a b c -> d where
-  mkTuple :: o -> (a,b,c) -> Double -> (o,(d,Double))
 
-extendBy :: ExtendVal o a b c d => Val o a -> Info b c -> Val o d
-extendBy as bs = crtVal
-                   [mkTuple o (aa,b,cc) ((av*cv)/maxVal) |
+class Tuple a c d | a c -> d where
+  mkTuple :: a -> c -> d 
+
+instance Tuple (OneTuple a) b (a,b) where
+  mkTuple a b = (only a,b)
+
+instance Tuple (a,b) c (a,b,c) where
+  mkTuple (a,b) c = (a,b,c)
+
+instance Tuple (a,b,c) d (a,b,c,d) where
+  mkTuple (a,b,c) d = (a,b,c,d)
+
+instance Tuple (a,b,c,d) e (a,b,c,d,e) where
+  mkTuple (a,b,c,d) e = (a,b,c,d,e)
+
+-- extendBy :: (Ord o,Ord b,Valence c,Set c,Ord d,Tuple a c d,Split a b e) => Val o a -> Info b c -> Val o d
+-- extendBy :: (Ord o,Ord b,Valence c,Set c,Ord d,Tuple a c d,SubDim a b) => Val o a -> Info b c -> Val o d
+extendBy as bs = mkVal
+                   [(o,(mkTuple aa cc,(av*cv)/maxVal)) |
                     (o,a) <- fromInfo as,             (aa,av) <- fromRec a,
                     (b,c) <- (fromInfo.valuation) bs, (cc,cv) <- fromRec c,
-                    proj aa==b]
+                    focus aa == b]
 
--- extend :: ExtendVal o a b c d => Val o a -> (c -> Nums b) -> Val o d
+-- extend :: (Ord o,Set b,Valence c,Set c,Ord d,Tuple a c d,Split a b e) => Val o a -> (c -> Nums b) -> Val o d
 -- extend as f = extendBy as (gather f)
 
-instance (Set a,Set b,Valence b,Ord o) => ExtendVal o (OneTuple a) a b (a,b) where
-  mkTuple o (a,_,b) n = (o,((only a,b),n))
+-- type Priority o = [(o,Double)]
 
-instance (Set b,Set c,Valence c,Ord o,Ord a) => ExtendVal o (a,b) b c (a,b,c) where
-  mkTuple o ((a,b),_,c) n = (o,((a,b,c),n))
-
-instance (Set c,Set d,Valence d,Ord o,Ord a,Ord b) => ExtendVal o (a,b,c) c d (a,b,c,d) where
-  mkTuple o ((a,b,c),_,d) n = (o,((a,b,c,d),n))
-
-type Priority o = [(o,Double)]
-
-priority :: Val o a -> Priority o
-priority = map (\(o,a) -> (o,f a)).fromInfo
-  where
-    f = sum.map snd . fromRec
+-- priority :: Val o a -> Priority o
+-- priority = map (\(o,a) -> (o,f a)).fromInfo
+--   where
+--     f = sum . map snd . fromRec

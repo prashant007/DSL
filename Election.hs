@@ -1,8 +1,8 @@
 {-# LANGUAGE  DeriveAnyClass,MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances #-}
 module Election where
 
-import Attribute
-import Object
+import Record
+import Info
 import Valuation
 import MDS
 import Transformation
@@ -18,57 +18,43 @@ data Policy = Environment | Economic | Foreign | Health deriving (Eq,Ord,Show,En
 data Candidate = Clinton | Trump deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Population  = Population deriving (Eq,Ord,Show,Enum,Bounded,Set)
 
-instance AttrValence Geography
-instance AttrValence Demography
-instance AttrValence Policy
-instance AttrValence Population
+instance Valence Geography
+instance Valence Demography
+instance Valence Policy
+instance Valence Population
 
--- Doing it in one step
---
-policyInfo :: Policy -> Spread Candidate
-policyInfo x = case x of Environment-> [Clinton --> 180,Trump --> 45] 
-                         Economic -> [Clinton --> 55,Trump --> 220]
-                         Foreign  -> [Clinton --> 35,Trump --> 140]  
-                         Health   -> [Clinton --> 195,Trump --> 130]
 
-policies :: Obj Candidate Policy
-policies = gather policyInfo
+policy :: Info Candidate Policy 
+policy = info [Clinton --> [Environment --> 180,Economic --> 55, Foreign --> 35, Health --> 195],
+               Trump   --> [Environment --> 45, Economic --> 220,Foreign --> 140,Health --> 130]]
+
 
 
 -- - Every demography expressed what policies are important to them.
 -- Young voters (300 in number) - 1/3 of youth voters plan to vote based on a candidates education policy, 1/6  each for economic and foregin policy,
 -- and the remaining 1/3 for Health policy. 
 
+demography :: Info Policy Demography
+demography = info [Environment --> [Young --> 100,MiddleAged --> 75, Old --> 50],
+                   Economic    --> [Young --> 50, MiddleAged --> 125,Old --> 100],
+                   Foreign     --> [Young --> 50, MiddleAged --> 75, Old --> 50],
+                   Health      --> [Young --> 100,MiddleAged --> 75, Old --> 150]]
 
-demographyInfo :: Demography -> Spread Policy
-demographyInfo x = case x of Young -> [Environment --> 100,Economic --> 50,Foreign --> 50,Health --> 100]
-                             MiddleAged -> [Environment --> 75,Economic --> 125,Foreign --> 75,Health --> 75]
-                             Old -> [Environment --> 50,Economic --> 100,Foreign --> 50,Health --> 150]
+  
 
-demography :: Obj Policy Demography
-demography = gather demographyInfo
-    
-geographyInfo :: Geography -> Spread Demography 
-geographyInfo x = case x of Rural -> [Young --> 100,MiddleAged --> 150,Old --> 250]
-                            Urban -> [Young --> 200,MiddleAged --> 200,Old --> 100]
+geography :: Info Demography Geography
+geography = info [Young --> [Rural --> 100,Urban --> 200],
+                  MiddleAged --> [Rural --> 150,Urban --> 200],
+                  Old --> [Rural --> 250,Urban --> 100]]
 
-geography :: Obj Demography Geography
-geography = gather geographyInfo
 
-population :: Obj Geography Population
+population :: Info Geography Population
 population = addAttribute Population [Rural --> 500,Urban --> 500] objects
 
-populationInfo :: Population -> Spread Geography 
-populationInfo Population = [Rural --> 500,Urban --> 500]
-
 candidates :: Val Candidate (Policy,Demography,Geography,Population)
-candidates = val policies `extendBy` demography `extendBy` geography `extendBy` population
+candidates = val policy `extendBy` demography `extendBy` geography `extendBy` population
 
-
-candidates' :: Val Candidate (Policy,Demography,Geography,Population)
-candidates' = val' policyInfo `extend` demographyInfo `extend` geographyInfo `extend` populationInfo
-
-type CandidateDecomp = Attr (Policy,Demography,Geography,Population)
+type CandidateDecomp = Rec (Policy,Demography,Geography,Population)
 
 trump :: CandidateDecomp
 trump = select Trump candidates
@@ -76,8 +62,8 @@ trump = select Trump candidates
 clinton :: CandidateDecomp
 clinton = select Clinton candidates
 
-candPriority :: Priority Candidate 
-candPriority = priority candidates
+-- candPriority :: Priority Candidate 
+-- candPriority = priority candidates
 
 expCandidate :: Explain (Policy,Demography,Geography)
 expCandidate = explain vdCandidate
@@ -85,8 +71,8 @@ expCandidate = explain vdCandidate
 c11 = factorize trump :: Factor Population (Policy,Demography,Geography)
 c12 = factorize clinton :: Factor Population (Policy,Demography,Geography)
 
-vdCandidate :: Attr (Policy,Demography,Geography)
-vdCandidate = reduce $ diff trump clinton
+vdCandidate :: Rec (Policy,Demography,Geography)
+vdCandidate = reduce $ candidates!Trump - candidates!Clinton
 
 expDemography :: Explain Demography 
 expDemography = generalize vdCandidate 
@@ -100,7 +86,7 @@ expPolicy = generalize vdCandidate
 
 (_,support,barrier,mdss,_) = expCandidate
 
-mdsC = head mdss :: Attr (Policy,Demography,Geography)
+mdsC = head mdss :: Rec (Policy,Demography,Geography)
 
 
 fact1 = pFact (factorize mdsC :: Factor Policy (Demography,Geography))

@@ -22,7 +22,6 @@ class (Bounded a,Enum a,Ord a) => Set a where
 --
 type Nums a = [(a,Double)]
 
-
 data Info o a = Info {unInfo :: M.Map o (Rec a)}
 
 mkInfo :: Ord o => [(o,Rec a)] -> Info o a
@@ -67,8 +66,8 @@ addAttribute :: (Ord o,Ord a) => a -> Nums o -> Info o a -> Info o a
 addAttribute c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- fromInfo bs,a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
 
--- gather :: (Set o,Set a) => (a -> Nums o) -> Info o a
--- gather f = foldl (\o a -> addAttribute a (f a) o) objects members
+gather :: (Set o,Set a) => (a -> Nums o) -> Info o a
+gather f = foldl (\o a -> addAttribute a (f a) o) objects members
 
 addAlternative :: (Ord o,Set a) => o -> (a -> Double) -> Info o a -> Info o a
 addAlternative o f vs = Info $ M.insert o (mkRec ls) (unInfo vs)

@@ -7,8 +7,7 @@ import Data.Map.Merge.Strict
 import Data.Function (on)
 import Data.List
 import Text.Printf
-import Data.Tuple.OneTuple (only,OneTuple)
-
+import Data.Tuple.OneTuple (only,OneTuple(..))
 
 -- Syntactic sugar for pairs used in maps
 --
@@ -45,7 +44,6 @@ mapRec2 g x y =  Rec $ merge preserveMissing preserveMissing
 subRec :: (a -> Bool) -> Rec a -> Rec a
 subRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
 
-
 foldRec :: (M.Map a Double -> b) -> Rec a -> b 
 foldRec f = f.unRec
 
@@ -78,22 +76,117 @@ instance Ord a => Num (Rec a) where
 -- diff :: Ord a => Rec a -> Rec a -> Rec a
 -- diff = mapRec2 (-)
 
+-- class Split a f r | a -> f r where
+--   focus :: a -> f 
+--   remainder :: a -> r 
 
--- SubDim type class projects an element from a tuple
---
-class SubDim a b | a -> b where
-  proj :: a -> b
+-- instance Split (OneTuple a) a () where 
+--   focus  = only
+--   remainder _ = ()
 
-instance SubDim (OneTuple a) a where proj = only
+-- instance Split (a,b) b (OneTuple a) where
+--   focus  = snd 
+--   remainder = OneTuple . fst 
 
-instance SubDim (a,b) a where proj = fst
-instance SubDim (a,b) b where proj = snd
+-- instance Split (a,b) a (OneTuple b) where
+--   focus  = fst 
+--   remainder = OneTuple . snd 
 
-instance SubDim (a,b,c) a where proj (a,b,c) = a
-instance SubDim (a,b,c) b where proj (a,b,c) = b
-instance SubDim (a,b,c) c where proj (a,b,c) = c
+-- instance Split (a,b,c) a (b,c) where
+--   focus  (a,b,c) = a
+--   remainder (a,b,c) = (b,c)
 
-instance SubDim (a,b,c,d) a where proj (a,b,c,d) = a
-instance SubDim (a,b,c,d) b where proj (a,b,c,d) = b
-instance SubDim (a,b,c,d) c where proj (a,b,c,d) = c
-instance SubDim (a,b,c,d) d where proj (a,b,c,d) = d
+-- instance Split (a,b,c) b (a,c) where
+--   focus  (a,b,c) = b
+--   remainder (a,b,c) = (a,c)
+
+-- instance Split (a,b,c) c (a,b) where
+--   focus  (a,b,c) = c
+--   remainder (a,b,c) = (a,b)
+
+-- instance Split (a,b,c,d) a (b,c,d) where
+--   focus  (a,b,c,d) = a
+--   remainder (a,b,c,d) = (b,c,d)
+
+-- instance Split (a,b,c,d) b (a,c,d) where
+--   focus  (a,b,c,d) = b 
+--   remainder (a,b,c,d) = (a,c,d)
+
+-- instance Split (a,b,c,d) c (a,b,d) where
+--   focus  (a,b,c,d) = c
+--   remainder (a,b,c,d) = (a,b,d)
+
+-- instance Split (a,b,c,d) d (a,b,c) where
+--   focus  (a,b,c,d) = d
+--   remainder (a,b,c,d) = (a,b,c)
+
+
+class SubDim  a b | a -> b where
+  focus :: a -> b 
+
+instance SubDim  (OneTuple a) a  where 
+  focus = only
+
+instance SubDim  (a,b) a where
+  focus (a,b) = a
+
+instance SubDim  (a,b) b where
+  focus (a,b) = b 
+
+instance SubDim  (a,b,c) a where
+  focus (a,b,c) = a
+
+instance SubDim  (a,b,c) b where
+  focus (a,b,c) = b 
+
+instance SubDim  (a,b,c) c where
+  focus (a,b,c) = c
+
+instance SubDim  (a,b,c,d) a where
+  focus (a,b,c,d) = a 
+
+instance SubDim  (a,b,c,d) b where
+  focus (a,b,c,d) = b 
+
+instance SubDim  (a,b,c,d) c where
+  focus (a,b,c,d) = c 
+
+instance SubDim  (a,b,c,d) d where
+  focus (a,b,c,d) = d 
+
+
+class Reduce a b | a -> b where
+  remainder :: a -> b 
+
+instance Reduce (OneTuple a) ()  where 
+  remainder _ = ()
+
+instance Reduce (a,b) a  where 
+  remainder (a,b) = a 
+
+instance Reduce (a,b) b  where 
+  remainder (a,b) = b 
+
+instance Reduce (a,b,c) (a,b) where 
+  remainder (a,b,c) = (a,b)
+
+instance Reduce (a,b,c) (b,c) where 
+  remainder (a,b,c) = (b,c)
+
+instance Reduce (a,b,c) (a,c) where 
+  remainder (a,b,c) = (a,c)
+
+instance Reduce (a,b,c,d) (a,b,c) where 
+  remainder (a,b,c,d) = (a,b,c)
+
+instance Reduce (a,b,c,d) (b,c,d) where 
+  remainder (a,b,c,d) = (b,c,d)
+
+instance Reduce (a,b,c,d) (a,c,d) where 
+  remainder (a,b,c,d) = (a,c,d)
+
+instance Reduce (a,b,c,d) (a,b,d) where 
+  remainder (a,b,c,d) = (a,b,d)  
+
+sortNGroupBy :: Ord b => (a -> b) -> [a] -> [[a]]
+sortNGroupBy f = groupBy ((==) `on` f) . sortBy (compare `on` f)
