@@ -158,13 +158,9 @@ mds0r = reduce mds0
 featureFocus = pFact (factorize mds0r :: Factor Feature Opinion)
 opinionFocus = pFact (factorize mds0r :: Factor Opinion Feature)
 
--- exp3 :: Explain (Feature,Opinion,Weight)
--- exp3@(vd3,sup3,bar3,doms3,mds3:_) = explain vdThreeCars
 
--- mds3r :: MDS (Feature,Opinion)
--- mds3r = reduce mds3
+factorize' = factorize.mkOneTupleRec
 
--- featureFocus3 = pFact (factorize mds3r :: Factor Feature Opinion)
-
--- vdThreeCars :: Rec Feature
--- vdThreeCars = diff (valuation threeCars) Honda BMW  
+vdTwoCars = diff (valuation carFeatures) Honda BMW
+factTwoCars = factorize' vdTwoCars :: Factor Feature ()
+factThreeCars = factorize' vdThreeCars :: Factor Feature ()

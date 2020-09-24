@@ -8,6 +8,7 @@ import Text.Printf
 import Data.List hiding (filter)
 import Prelude hiding (filter)
 import Data.Tuple.OneTuple as T (only,OneTuple) 
+import Data.Maybe 
 import Record
 import Info
 import MDS hiding (compare)
@@ -92,12 +93,12 @@ type Factor b c = [(b,Rec c,Double)]
 formatFact :: Ord c => Factor b c -> Factor b c 
 formatFact ls = map percentFact ls   
   where
-    sumF = sum.map (\(x,y,z) -> z) $ ls
-    mkPercent s v = (v/s)*100
+    sumF = sum.map (\(x,y,z) -> abs z) $ ls
+    mkPercent s v = ((abs v)/s)*100
     percentFact = \(x,y,z) -> (x,percentRec y,mkPercent sumF z)
 
     percentRec :: Ord a => Rec a -> Rec a 
-    percentRec x = let sumR = foldRec (sum.map snd) $ x
+    percentRec x = let sumR = foldRec (sum.map (abs.snd)) $ x
                    in mapRec (mkPercent sumR) x  
 
 
@@ -113,14 +114,31 @@ pFact :: (Show a,Show b) => Factor a b -> IO ()
 pFact = mapM_ pFactH 
   where
     pFactH :: (Show b,Show c) => (b,Rec c,Double) -> IO () 
-    pFactH (b,c,v) = putStrLn $ show b ++ " : " ++ printf "%.2f" v ++ " %\n " ++ showRec c ++ " \n"
+    pFactH (b,c,v) = putStrLn $ show b ++ " : " ++ printf "%.0f" v ++ " %\n " ++ showRec c ++ " \n"
     
     showRec :: Show a => Rec a -> String
     showRec = showSetLn . foldRec (map showPairP) 
 
     showPairP :: Show a => (a,Double) -> String
-    showPairP (x,y) = show x ++ " -> " ++ printf "%.2f" y ++ " %"
+    showPairP (x,y) = show x ++ " -> " ++ printf "%.0f" y ++ " %"
 
     showSetLn :: [String] -> String
     showSetLn xs = "\t{" ++ intercalate ",\n\t " xs ++ "}"
 
+
+type Percent = Double 
+
+vdi :: Eq a => a -> a -> Factor a b -> Factor a b -> (Percent,Percent) 
+vdi a b f1 f2 = (compImpact a b f1,compImpact a b f2)
+  where
+    lookUpAttr :: Eq a => a -> Factor a b -> Double
+    lookUpAttr x  = fromJust . lookup x . map (\(x,y,z) -> (x,z)) 
+
+    -- compare impacts 
+    compImpact :: Eq a => a -> a -> Factor a b -> Percent 
+    compImpact x y f = (lookUpAttr x f/lookUpAttr y f)*100
+
+pvdi :: (Percent,Percent) -> IO ()
+pvdi (x,y) = do
+  let showP a = printf "%.0f" a ++ "%" 
+  putStrLn $ "(" ++ showP x ++ ", " ++ showP y ++ ")" 

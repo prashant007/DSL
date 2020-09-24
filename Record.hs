@@ -47,7 +47,7 @@ groupRecBy :: (Ord a,Ord b) => (a -> b) -> Rec a -> [Rec a]
 groupRecBy f = map mkRec . sortNGroupBy (f.fst) . fromRec 
 
 
--- create a list of lists by grouping "similar" elements based on a function 
+-- create a list of lists based on a function 
 sortNGroupBy :: Ord b => (a -> b) -> [a] -> [[a]]
 sortNGroupBy f = groupBy ((==) `on` f) . sortBy (compare `on` f)
 
@@ -56,7 +56,7 @@ subRec :: (a -> Bool) -> Rec a -> Rec a
 subRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
 
 foldRec :: ([(a,Double)] -> b) -> Rec a -> b 
-foldRec f = f . fromRec  
+foldRec f = f . fromRec 
 
 -- Printing record values
 --

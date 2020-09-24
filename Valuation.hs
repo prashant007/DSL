@@ -66,6 +66,8 @@ addAttrVal c as bs = mkInfo [(b,f c av bv) | (a,av) <- as,(b,bv) <- bs',a == b]
     where f x xv ys = Rec $ M.insert x xv (unRec ys)
           bs' = fromInfo bs
 
+mkOneTupleRec :: Ord a => Rec a -> Rec (OneTuple a)
+mkOneTupleRec = onRec (M.mapKeys OneTuple)
 
 mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
 mkOneTuple = mapInfo $ onRec (M.mapKeys OneTuple)
