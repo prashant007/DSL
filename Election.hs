@@ -1,8 +1,9 @@
-{-# LANGUAGE  DeriveAnyClass,MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances #-}
+{-# LANGUAGE  DeriveAnyClass #-}
 module Election where
 
 import Record
 import Info
+import Focus 
 import Valuation
 import MDS
 import Transformation
@@ -68,8 +69,8 @@ clinton = select Clinton candidates
 expCandidate :: Explain (Policy,Demography,Geography)
 expCandidate = explain vdCandidate
 
-c11 = factorize trump :: Factor Population (Policy,Demography,Geography)
-c12 = factorize clinton :: Factor Population (Policy,Demography,Geography)
+c11 = factorize trump :: Focus Population (Policy,Demography,Geography)
+c12 = factorize clinton :: Focus Population (Policy,Demography,Geography)
 
 vdCandidate :: Rec (Policy,Demography,Geography)
 vdCandidate = reduce $ candidates!Trump - candidates!Clinton
@@ -89,16 +90,16 @@ expPolicy = generalize vdCandidate
 mdsC = head mdss :: Rec (Policy,Demography,Geography)
 
 
-fact1 = pFact (factorize mdsC :: Factor Policy (Demography,Geography))
-fact2 = pFact (factorize mdsC :: Factor Demography (Policy,Geography))
-fact3 = pFact (factorize mdsC :: Factor Geography (Policy,Demography))
+fact1 = factorize mdsC :: Focus Policy (Demography,Geography)
+fact2 = factorize mdsC :: Focus Demography (Policy,Geography)
+fact3 = factorize mdsC :: Focus Geography (Policy,Demography)
 
-geographyTrump = pFact (factorize support :: Factor Geography (Policy,Demography))
-geographyClinton = pFact (factorize barrier :: Factor Geography (Policy,Demography))
+geographyTrump = factorize support :: Focus Geography (Policy,Demography)
+geographyClinton = factorize barrier :: Focus Geography (Policy,Demography)
 
-demographyTrump = pFact (factorize support :: Factor Demography (Policy,Geography))
-demographyClinton = pFact (factorize barrier :: Factor Demography (Policy,Geography))
+demographyTrump = factorize support :: Focus Demography (Policy,Geography)
+demographyClinton = factorize barrier :: Focus Demography (Policy,Geography)
 
-policyTrump = pFact (factorize support :: Factor Policy (Demography,Geography))
-policyClinton = pFact (factorize barrier :: Factor Policy (Demography,Geography))
+policyTrump = factorize support :: Focus Policy (Demography,Geography)
+policyClinton = factorize barrier :: Focus Policy (Demography,Geography)
 
