@@ -52,9 +52,6 @@ foldRec f x =  M.foldr f x . unRec
 foldRecWithKey :: (a -> Double -> b -> b) -> b -> Rec a -> b
 foldRecWithKey f x = M.foldrWithKey f x . unRec
 
--- *Car> groupByKeys (\k -> k `mod` 2)  (M.fromList [(1,"b"), (2,"a"), (3,"d"), (4,"c")])
--- fromList [(0,fromList [(2,"a"),(4,"c")]),(1,fromList [(1,"b"),(3,"d")])]
-
 groupByKeys :: (Ord k,Ord k') => (k -> k') -> M.Map k a -> M.Map k' (M.Map k a)
 groupByKeys f = M.mapKeysWith M.union f . M.mapWithKey (\x y -> M.fromList [(x,y)])
 
@@ -92,19 +89,21 @@ mkPercent :: Double -> Double -> Percent
 mkPercent s v = ((abs v)/s)*100
 
 percentRec :: Ord a => Rec a -> Rec a
-percentRec x = mapRec (mkPercent (sumRec x )) x
+percentRec r = mapRec (mkPercent (sumRec r)) r
 
 showPairD :: Show a => Int -> (a,Double) -> String
-showPairD n (x,y) = show x ++ " -> " ++ printf (format n) y
-    where format n = "%." ++ show n ++ "f"
+showPairD n (x,y) = show x ++ " -> " ++ printf ("%."++show n++"f") y
+
+showSet :: [String] -> String
+showSet xs = "{" ++ intercalate ", " xs ++ "}"
 
 showSetLn :: [String] -> String
 showSetLn xs = "{" ++ intercalate ",\n " xs ++ "}"
 
 -- show record values as percentages
 showRecPercent :: Show a => Rec a -> String
-showRecPercent = showSetLn . foldRecWithKey showFun []
-  where showFun y n = (:) (showPairD 0 (y,n) ++ " %")
+showRecPercent = showSet. foldRecWithKey showFun []
+  where showFun y n = (:) (showPairD 0 (y,n) ++ "%")
 
 instance Show a => Show (Rec a) where
   show = showSetLn . map (showPairD 2) . fromRec
