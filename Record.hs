@@ -42,12 +42,12 @@ mapRec2 g x y =  Rec $ merge preserveMissing preserveMissing
                        (zipWithMatched (\_->g)) (unRec x) (unRec y)
 
 
--- create and group records based on a function 
+-- create and group records based on a function
 groupRecBy :: (Ord a,Ord b) => (a -> b) -> Rec a -> [Rec a]
-groupRecBy f = map mkRec . sortNGroupBy (f.fst) . fromRec 
+groupRecBy f = map mkRec . sortNGroupBy (f.fst) . fromRec
 
 
--- create a list of lists by grouping "similar" elements based on a function 
+-- create a list of lists by grouping "similar" elements based on a function
 sortNGroupBy :: Ord b => (a -> b) -> [a] -> [[a]]
 sortNGroupBy f = groupBy ((==) `on` f) . sortBy (compare `on` f)
 
@@ -55,8 +55,8 @@ sortNGroupBy f = groupBy ((==) `on` f) . sortBy (compare `on` f)
 subRec :: (a -> Bool) -> Rec a -> Rec a
 subRec f = Rec . M.filterWithKey (\k _ -> f k) . unRec
 
-foldRec :: ([(a,Double)] -> b) -> Rec a -> b 
-foldRec f = f . fromRec  
+foldRec :: ([(a,Double)] -> b) -> Rec a -> b
+foldRec f = f . fromRec
 
 -- Printing record values
 --
@@ -88,20 +88,20 @@ instance Ord a => Num (Rec a) where
 -- diff = mapRec2 (-)
 
 -- class Split a f r | a -> f r where
---   focus :: a -> f 
---   remainder :: a -> r 
+--   focus :: a -> f
+--   remainder :: a -> r
 
--- instance Split (OneTuple a) a () where 
+-- instance Split (OneTuple a) a () where
 --   focus  = only
 --   remainder _ = ()
 
 -- instance Split (a,b) b (OneTuple a) where
---   focus  = snd 
---   remainder = OneTuple . fst 
+--   focus  = snd
+--   remainder = OneTuple . fst
 
 -- instance Split (a,b) a (OneTuple b) where
---   focus  = fst 
---   remainder = OneTuple . snd 
+--   focus  = fst
+--   remainder = OneTuple . snd
 
 -- instance Split (a,b,c) a (b,c) where
 --   focus  (a,b,c) = a
@@ -120,7 +120,7 @@ instance Ord a => Num (Rec a) where
 --   remainder (a,b,c,d) = (b,c,d)
 
 -- instance Split (a,b,c,d) b (a,c,d) where
---   focus  (a,b,c,d) = b 
+--   focus  (a,b,c,d) = b
 --   remainder (a,b,c,d) = (a,c,d)
 
 -- instance Split (a,b,c,d) c (a,b,d) where
@@ -133,72 +133,68 @@ instance Ord a => Num (Rec a) where
 
 
 class SubDim  a b | a -> b where
-  focus :: a -> b 
+  focus :: a -> b
 
-instance SubDim  (OneTuple a) a  where 
+instance SubDim  (OneTuple a) a  where
   focus = only
 
 instance SubDim  (a,b) a where
   focus (a,b) = a
 
 instance SubDim  (a,b) b where
-  focus (a,b) = b 
+  focus (a,b) = b
 
 instance SubDim  (a,b,c) a where
   focus (a,b,c) = a
 
 instance SubDim  (a,b,c) b where
-  focus (a,b,c) = b 
+  focus (a,b,c) = b
 
 instance SubDim  (a,b,c) c where
   focus (a,b,c) = c
 
 instance SubDim  (a,b,c,d) a where
-  focus (a,b,c,d) = a 
+  focus (a,b,c,d) = a
 
 instance SubDim  (a,b,c,d) b where
-  focus (a,b,c,d) = b 
+  focus (a,b,c,d) = b
 
 instance SubDim  (a,b,c,d) c where
-  focus (a,b,c,d) = c 
+  focus (a,b,c,d) = c
 
 instance SubDim  (a,b,c,d) d where
-  focus (a,b,c,d) = d 
+  focus (a,b,c,d) = d
 
 
 class Reduce a b | a -> b where
-  remainder :: a -> b 
+  remainder :: a -> b
 
-instance Reduce (OneTuple a) ()  where 
+instance Reduce (OneTuple a) ()  where
   remainder _ = ()
 
-instance Reduce (a,b) a  where 
-  remainder (a,b) = a 
+instance Reduce (a,b) a  where
+  remainder (a,b) = a
 
-instance Reduce (a,b) b  where 
-  remainder (a,b) = b 
+instance Reduce (a,b) b  where
+  remainder (a,b) = b
 
-instance Reduce (a,b,c) (a,b) where 
+instance Reduce (a,b,c) (a,b) where
   remainder (a,b,c) = (a,b)
 
-instance Reduce (a,b,c) (b,c) where 
+instance Reduce (a,b,c) (b,c) where
   remainder (a,b,c) = (b,c)
 
-instance Reduce (a,b,c) (a,c) where 
+instance Reduce (a,b,c) (a,c) where
   remainder (a,b,c) = (a,c)
 
-instance Reduce (a,b,c,d) (a,b,c) where 
+instance Reduce (a,b,c,d) (a,b,c) where
   remainder (a,b,c,d) = (a,b,c)
 
-instance Reduce (a,b,c,d) (b,c,d) where 
+instance Reduce (a,b,c,d) (b,c,d) where
   remainder (a,b,c,d) = (b,c,d)
 
-instance Reduce (a,b,c,d) (a,c,d) where 
+instance Reduce (a,b,c,d) (a,c,d) where
   remainder (a,b,c,d) = (a,c,d)
 
-instance Reduce (a,b,c,d) (a,b,d) where 
-  remainder (a,b,c,d) = (a,b,d)  
-
-
--- constituents = map (reduce.mkRec) . sortNGroupBy focusElem . fromRec
-
+instance Reduce (a,b,c,d) (a,b,d) where
+  remainder (a,b,c,d) = (a,b,d)

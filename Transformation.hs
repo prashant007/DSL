@@ -7,7 +7,7 @@ import qualified Data.Map as M
 import Text.Printf
 import Data.List hiding (filter)
 import Prelude hiding (filter)
-import Data.Tuple.OneTuple as T (only,OneTuple) 
+import Data.Tuple.OneTuple as T (only,OneTuple)
 import Record
 import Info
 import MDS hiding (compare)
@@ -36,11 +36,11 @@ filter f = onInfo (M.map (subRec f))
 
 -- only :: (Eq b,Split a b c) => b -> Info o a -> Info o a
 only :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
-only v = filter $ (==v) . focus 
+only v = filter $ (==v) . focus
 
 -- except :: (Eq b,Split a b c) => b -> Info o a -> Info o a
 except :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
-except v = filter $ (/=v) . focus 
+except v = filter $ (/=v) . focus
 
 -- ================== SUMOUT ==============================================
 -- ========================================================================
@@ -55,14 +55,14 @@ except v = filter $ (/=v) . focus
 -- thereby giving us this attr val: {Fuel -> 0.048,Price -> 0.112}. SumOut is a type class
 -- used to achieve this effect on attr values.
 
-fstFocus :: SubDim a c =>  (a,b) -> c 
-fstFocus = (focus.fst)
+-- fstFocus :: SubDim a c =>  (a,b) -> c
+-- fstFocus = focus . fst
 
 -- sumOut :: (Split a b c,Ord b) => Rec a -> Rec b
-sumOut :: (SubDim a b,Ord a,Ord b) => Rec a -> Rec b
-sumOut =  mkRec . foldRec (map mkPair . sortNGroupBy fstFocus)
-  where mkPair xs@((x,_):_) = (focus x,sum.map snd $ xs)
-      
+sumOut :: (Ord a,Ord b,SubDim a b) => Rec a -> Rec b
+sumOut =  mkRec . foldRec (map mkPair . sortNGroupBy (focus . fst))
+  where mkPair xs@((x,_):_) = (focus x, sum . map snd $ xs)
+
 
 -- ===================== REDUCE =============================================
 -- ==========================================================================
@@ -88,39 +88,38 @@ reduce = onRec (M.mapKeys remainder)
 
 type Factor b c = [(b,Rec c,Double)]
 
--- this changes factor values from absolutes values to percentages 
-formatFact :: Ord c => Factor b c -> Factor b c 
-formatFact ls = map percentFact ls   
+-- this changes factor values from absolutes values to percentages
+formatFact :: Ord c => Factor b c -> Factor b c
+formatFact ls = map percentFact ls
   where
     sumF = sum.map (\(x,y,z) -> z) $ ls
     mkPercent s v = (v/s)*100
     percentFact = \(x,y,z) -> (x,percentRec y,mkPercent sumF z)
 
-    percentRec :: Ord a => Rec a -> Rec a 
+    percentRec :: Ord a => Rec a -> Rec a
     percentRec x = let sumR = foldRec (sum.map snd) $ x
-                   in mapRec (mkPercent sumR) x  
+                   in mapRec (mkPercent sumR) x
 
 
 -- factorize :: (Ord a,Ord b,Ord c,Split a b c) => Rec a -> Factor b constituents
 factorize :: (Ord a,Ord b,Ord c,SubDim a b,Reduce a c) => Rec a -> Factor b c
 factorize xs = formatFact $ zipWith mkFact (attrScore xs) (groupRecBy focus xs)
     where mkFact = \x y -> (fst x,reduce y,snd x)
-          -- impact/score of individual attributes 
-          attrScore = foldRec sort . sumOut          
+          -- impact/score of individual attributes
+          attrScore = foldRec sort . sumOut
 
 
 pFact :: (Show a,Show b) => Factor a b -> IO ()
-pFact = mapM_ pFactH 
+pFact = mapM_ pFactH
   where
-    pFactH :: (Show b,Show c) => (b,Rec c,Double) -> IO () 
+    pFactH :: (Show b,Show c) => (b,Rec c,Double) -> IO ()
     pFactH (b,c,v) = putStrLn $ show b ++ " : " ++ printf "%.2f" v ++ " %\n " ++ showRec c ++ " \n"
-    
+
     showRec :: Show a => Rec a -> String
-    showRec = showSetLn . foldRec (map showPairP) 
+    showRec = showSetLn . foldRec (map showPairP)
 
     showPairP :: Show a => (a,Double) -> String
     showPairP (x,y) = show x ++ " -> " ++ printf "%.2f" y ++ " %"
 
     showSetLn :: [String] -> String
     showSetLn xs = "\t{" ++ intercalate ",\n\t " xs ++ "}"
-
