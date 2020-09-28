@@ -8,6 +8,7 @@ import Record
 import Info
 import Valuation
 import MDS
+import Focus
 import Transformation
 
 
@@ -45,8 +46,8 @@ threeCars :: Info Car Feature
 threeCars = carFeatures `union`
             info [Toyota --> [Price --> 27000, MPG --> 30, Safety --> 9.4]]
 
-opinions3 = delAttribute carFeatures Price
-opinions4 = modAttribute carFeatures Price Honda 45000
+opinions3 = delAttribute Price carFeatures
+opinions4 = modAttribute Price Honda 45000 carFeatures
 
 vdThreeCars :: Rec Feature
 vdThreeCars = diff (valuation threeCars) Honda BMW
@@ -155,16 +156,12 @@ exp2 = generalize vdCar
 mds0r :: MDS (Feature,Opinion)
 mds0r = reduce mds0
 
-featureFocus = pFact (factorize mds0r :: Factor Feature Opinion)
-opinionFocus = pFact (factorize mds0r :: Factor Opinion Feature)
+featureFocus = factorize mds0r :: Focus Feature Opinion
+opinionFocus = factorize mds0r :: Focus Opinion Feature
 
--- exp3 :: Explain (Feature,Opinion,Weight)
--- exp3@(vd3,sup3,bar3,doms3,mds3:_) = explain vdThreeCars
 
--- mds3r :: MDS (Feature,Opinion)
--- mds3r = reduce mds3
+factorize' = factorize.mkOneTupleRec
 
--- featureFocus3 = pFact (factorize mds3r :: Factor Feature Opinion)
-
--- vdThreeCars :: Rec Feature
--- vdThreeCars = diff (valuation threeCars) Honda BMW  
+vdTwoCars = diff (valuation carFeatures) Honda BMW
+factTwoCars = factorize' vdTwoCars :: Focus Feature ()
+factThreeCars = factorize' vdThreeCars :: Focus Feature ()
