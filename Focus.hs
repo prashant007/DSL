@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Focus where
 
 import Data.Function
@@ -44,12 +45,19 @@ foldFocusWithKey f a x = M.foldlWithKey f a (unFocus x)
 lookUpFocus :: Ord a => a -> Focus a b -> Double
 lookUpFocus x  = fst . fromJust . M.lookup x . unFocus
 
-instance (Show k,Show a) => Show (Focus k a) where
+instance {-# OVERLAPPING #-} Show k => Show (Focus k ()) where
   show = foldFocusWithKey pFocus ""
     where
       pFocus :: (Show k,Show a) => String -> k -> (Double,Rec a) -> String
       pFocus x k (v,r) =  x ++ "\n "  ++ show k ++ " : " ++ printf "%.0f" v
-                          ++ "% " ++ showRecPercent r 
+                          ++ "%"
+
+instance {-# OVERLAPPING #-} (Show k,Show a) => Show (Focus k a) where
+  show = foldFocusWithKey pFocus ""
+    where
+      pFocus :: (Show k,Show a) => String -> k -> (Double,Rec a) -> String
+      pFocus x k (v,r) =  x ++ "\n "  ++ show k ++ " : " ++ printf "%.0f" v
+                          ++ "% " ++ showRecPercent r
 
 
 -- this changes focused values from absolutes values to percentages
