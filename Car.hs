@@ -55,15 +55,11 @@ vdThreeCars = diff (valuation threeCars) Honda BMW
 -- vdCars ::
 vdCars = diff (valuation carFeatures) Honda BMW
 
-x :: Focus Feature ()
-x = factorize (mkOneTupleRec vdCars)
+ai :: Focus Feature ()
+ai = factorize (mkOneTupleRec vdCars)
 
-r :: Rec Int
-r = mkRec [1 --> 10, 2 --> 20, 3 --> 30, 4 --> 40, 5 --> 50]
-
-
--- aiThreeCars :: Factor Feature ()
--- aiThreeCars = factorize (mkOneTuple vdThreeCars)
+aiThreeCars :: Focus Feature ()
+aiThreeCars = factorize (mkOneTupleRec vdThreeCars)
 
 -- (3) Weighing attributes
 --
