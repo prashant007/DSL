@@ -135,10 +135,6 @@ carsP :: Val Car (Feature,Opinion,Weight)
 carsP = mkOneTuple carsV `extendBy` featureOpinions `extendBy` onlyPersonal
 
 
--- carPriority :: Priority Car
--- carPriority = priority cars
-
-
 -- (6) Explaining decisions
 --
 type CarDecomp = Rec (Feature,Opinion,Weight)
