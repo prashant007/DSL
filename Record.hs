@@ -86,13 +86,15 @@ mkOneTupleRec = onRec (M.mapKeys OneTuple)
 type Percent = Double
 
 mkPercent :: Double -> Double -> Percent
-mkPercent s v = ((abs v)/s)*100
+mkPercent s v = abs(v/s)*100
 
 percentRec :: Ord a => Rec a -> Rec a
 percentRec r = mapRec (mkPercent (sumRec r)) r
 
-showPairD :: Show a => Int -> (a,Double) -> String
-showPairD n (x,y) = show x ++ " -> " ++ printf ("%."++show n++"f") y
+-- first component shows how many decimal places are to be shown
+-- second argument is any string to be concatenated at end. 
+showPairD :: Show a => Int -> String -> (a,Double) -> String
+showPairD n s (x,y) = show x ++ " -> " ++ printf ("%."++show n++"f") y ++ s 
 
 showSet :: [String] -> String
 showSet xs = "{" ++ intercalate ", " xs ++ "}"
@@ -101,12 +103,11 @@ showSetLn :: [String] -> String
 showSetLn xs = "{" ++ intercalate ",\n " xs ++ "}"
 
 -- show record values as percentages
-showRecPercent :: Show a => Rec a -> String
-showRecPercent = showSet. foldRecWithKey showFun []
-  where showFun y n = (:) (showPairD 0 (y,n) ++ "%")
+showRec :: Show a => Int -> String -> Rec a -> String 
+showRec n s = showSet . map (showPairD n s) . fromRec
 
 instance Show a => Show (Rec a) where
-  show = showSetLn . map (showPairD 2) . fromRec
+  show = showRec 2 ""
 
 -- Records as numbers
 --
