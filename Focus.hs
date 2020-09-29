@@ -45,20 +45,20 @@ foldFocusWithKey f a x = M.foldlWithKey f a (unFocus x)
 lookUpFocus :: Ord a => a -> Focus a b -> Double
 lookUpFocus x  = fst . fromJust . M.lookup x . unFocus
 
+fromFocus :: Focus k a -> [(k,(Double,Rec a))]
+fromFocus = M.toList . unFocus
+
 instance {-# OVERLAPPING #-} Show k => Show (Focus k ()) where
-  show = foldFocusWithKey pFocus ""
-    where
-      pFocus :: (Show k,Show a) => String -> k -> (Double,Rec a) -> String
-      pFocus x k (v,r) =  x ++ "\n "  ++ show k ++ " : " ++ printf "%.0f" v
-                          ++ "%"
+  show = showSetLn . map showF . fromFocus
+    where 
+      showF (k,(v,_)) = show k ++ " : " ++ printf "%.0f" v ++ "%"
+
 
 instance {-# OVERLAPPING #-} (Show k,Show a) => Show (Focus k a) where
-  show = foldFocusWithKey pFocus ""
+  show = showSetLn . map showF . fromFocus
     where
-      pFocus :: (Show k,Show a) => String -> k -> (Double,Rec a) -> String
-      pFocus x k (v,r) =  x ++ "\n "  ++ show k ++ " : " ++ printf "%.0f" v
-                          ++ "% " ++ showRecPercent r
-
+        showF (k,(v,r)) = show k ++ " : " ++ printf "%.0f" v 
+                          ++ "% " ++ showRecPercent r 
 
 -- this changes focused values from absolutes values to percentages
 formatFocus :: Ord a => Focus k a -> Focus k a

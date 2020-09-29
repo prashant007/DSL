@@ -86,7 +86,7 @@ mkOneTupleRec = onRec (M.mapKeys OneTuple)
 type Percent = Double
 
 mkPercent :: Double -> Double -> Percent
-mkPercent s v = ((abs v)/s)*100
+mkPercent s v = abs(v/s)*100
 
 percentRec :: Ord a => Rec a -> Rec a
 percentRec r = mapRec (mkPercent (sumRec r)) r
