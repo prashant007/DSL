@@ -8,8 +8,6 @@ import Prelude hiding (filter)
 import Data.Tuple.OneTuple as T (only,OneTuple)
 import Data.Maybe
 
-
-
 import Record
 import Info
 import Focus
@@ -81,6 +79,9 @@ factorize :: (Ord a,Ord b,Ord c,SubDim a b,Reduce a c) => Rec a -> Focus b c
 factorize xs = formatFocus . Focus $ zipMap mkFact (unRec . projRec $ xs)
                                                    (groupRecBy proj xs)
     where mkFact = \_ x y -> (x,reduce y)
+
+impact :: Ord a => Rec a -> Focus a ()
+impact = factorize . mkOneTupleRec
 
 -- ========== VALUE DIFFERENCE IMPACTS (VDI) =================================
 -- ===========================================================================
