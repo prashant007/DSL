@@ -10,7 +10,7 @@ import Data.Tuple.OneTuple (only,OneTuple(..))
 
 import Record
 import Info
-import Classes 
+import Classes
 
 
 -- Distinguish beneficial and non-beneficial attributes
@@ -59,9 +59,9 @@ average = agg (\xs->sum xs/fromIntegral (length xs))
 mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
 mkOneTuple = mapInfo $ onRec (M.mapKeys OneTuple)
 
-extendBy :: (Ord o,Ord b,Valence c,Set c,Ord d,Tuple a c d,SubDim a b) => Val o a -> Info b c -> Val o d
-extendBy as bs = listToInfo 
-                   [((o,mkTuple aa cc),(av*cv)/maxVal) |
+extendBy :: (Ord o,Ord b,Valence c,Set c,Ord d,Append a c d,Covers a b) => Val o a -> Info b c -> Val o d
+extendBy as bs = listToInfo
+                   [((o,append aa cc),(av*cv)/maxVal) |
                     (o,a) <- fromInfo as,             (aa,av) <- fromRec a,
                     (b,c) <- (fromInfo.valuation) bs, (cc,cv) <- fromRec c,
-                    proj aa == b]
+                    project aa == b]

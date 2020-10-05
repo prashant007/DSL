@@ -119,17 +119,17 @@ cars = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.
 
 -- (7) Explaining decisions
 --
-vdCar :: Rec (Feature,Opinion,Weight)
-vdCar = diff cars Honda BMW
+vdCars :: Rec (Feature,Opinion,Weight)
+vdCars = diff cars Honda BMW
 
 exp0 :: Explain (Feature,Opinion,Weight)
-exp0@(vd0,sup0,bar0,doms0,mds0:_) = explain vdCar
+exp0@(vd0,sup0,bar0,doms0,mds0:_) = explain vdCars
 
 exp1 :: Explain Opinion
-exp1 = generalize vdCar
+exp1 = generalize vdCars
 
 exp2 :: Explain Feature
-exp2 = generalize vdCar
+exp2 = generalize vdCars
 
 mds0r :: MDS (Feature,Opinion)
 mds0r = reduce mds0

@@ -27,8 +27,8 @@ import MDS hiding (compare)
 -- terms of one level at a time.
 
 -- generalize :: (Ord b,Split a b c) => ValDiff a -> Explain b
-generalize :: (Ord a,Ord b,SubDim a b) => ValDiff a -> Explain b
-generalize = explain.projRec
+generalize :: (Ord a,Ord b,Covers a b) => ValDiff a -> Explain b
+generalize = explain.projectRec
 
 -- ================== Selector ==========================================
 -- ========================================================================
@@ -37,12 +37,12 @@ filter :: (a -> Bool) -> Info o a -> Info o a
 filter f = onInfo (M.map (subRec f))
 
 -- only :: (Eq b,Split a b c) => b -> Info o a -> Info o a
-only :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
-only v = filter $ (==v) . proj
+only :: (Eq b,Covers a b) => b -> Info o a -> Info o a
+only v = filter $ (==v) . project
 
 -- except :: (Eq b,Split a b c) => b -> Info o a -> Info o a
-except :: (Eq b,SubDim a b) => b -> Info o a -> Info o a
-except v = filter $ (/=v) . proj
+except :: (Eq b,Covers a b) => b -> Info o a -> Info o a
+except v = filter $ (/=v) . project
 
 -- ================== SUMOUT ==============================================
 -- ========================================================================
@@ -57,8 +57,8 @@ except v = filter $ (/=v) . proj
 -- thereby giving us this attr val: {Fuel -> 0.048,Price -> 0.112}. SumOut is a type class
 -- used to achieve this effect on attr values.
 
-projRec :: (SubDim a b,Ord a,Ord b) => Rec a -> Rec b
-projRec x = M.foldrWithKey iterRec emptyRec (groupRecBy proj x)
+projectRec :: (Covers a b,Ord a,Ord b) => Rec a -> Rec b
+projectRec x = M.foldrWithKey iterRec emptyRec (groupRecBy project x)
   where
     iterRec :: Ord b => b -> Rec a -> Rec b -> Rec b
     iterRec b m = insertRec b (sumRec m)
@@ -67,17 +67,17 @@ projRec x = M.foldrWithKey iterRec emptyRec (groupRecBy proj x)
 -- ==========================================================================
 
 -- Many a times the record value may have an argument that stays the same in all
--- the elements of an Norm value. The Reduce type class provides a way, using
+-- the elements of an Norm value. The Shrink type class provides a way, using
 -- the denoise function to achieve this.
-reduce :: (Ord a,Ord b,Reduce a b) => Rec a -> Rec b
-reduce = onRec (M.mapKeys reducedTup)
+reduce :: (Ord a,Ord b,Shrink a b) => Rec a -> Rec b
+reduce = onRec (M.mapKeys shrink)
 
 -- ================== FACTORIZING EXPLANATIONS ===============================
 -- ===========================================================================
 
-factorize :: (Ord a,Ord b,Ord c,SubDim a b,Reduce a c) => Rec a -> Focus b c
-factorize xs = formatFocus . Focus $ zipMap mkFact (unRec . projRec $ xs)
-                                                   (groupRecBy proj xs)
+factorize :: (Ord a,Ord b,Ord c,Covers a b,Shrink a c) => Rec a -> Focus b c
+factorize xs = formatFocus . Focus $ zipMap mkFact (unRec . projectRec $ xs)
+                                                   (groupRecBy project xs)
     where mkFact = \_ x y -> (x,reduce y)
 
 impact :: Ord a => Rec a -> Focus a ()
