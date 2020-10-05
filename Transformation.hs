@@ -11,7 +11,7 @@ import Data.Maybe
 import Record
 import Info
 import Focus
-import Classes
+import Dimension
 import MDS hiding (compare)
 
 
@@ -69,8 +69,8 @@ projectRec x = M.foldrWithKey iterRec emptyRec (groupRecBy project x)
 -- Many a times the record value may have an argument that stays the same in all
 -- the elements of an Norm value. The Shrink type class provides a way, using
 -- the denoise function to achieve this.
-reduce :: (Ord a,Ord b,Shrink a b) => Rec a -> Rec b
-reduce = onRec (M.mapKeys shrink)
+shrinkRec :: (Ord a,Ord b,Shrink a b) => Rec a -> Rec b
+shrinkRec = onRec (M.mapKeys shrink)
 
 -- ================== FACTORIZING EXPLANATIONS ===============================
 -- ===========================================================================
@@ -78,7 +78,7 @@ reduce = onRec (M.mapKeys shrink)
 factorize :: (Ord a,Ord b,Ord c,Covers a b,Shrink a c) => Rec a -> Focus b c
 factorize xs = formatFocus . Focus $ zipMap mkFact (unRec . projectRec $ xs)
                                                    (groupRecBy project xs)
-    where mkFact = \_ x y -> (x,reduce y)
+    where mkFact = \_ x y -> (x,shrinkRec y)
 
 impact :: Ord a => Rec a -> Focus a ()
 impact = factorize . mkOneTupleRec

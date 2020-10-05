@@ -132,7 +132,7 @@ exp2 :: Explain Feature
 exp2 = generalize vdCars
 
 mds0r :: MDS (Feature,Opinion)
-mds0r = reduce mds0
+mds0r = shrinkRec mds0
 
 featureFocus = factorize mds0r :: Focus Feature Opinion
 opinionFocus = factorize mds0r :: Focus Opinion Feature
