@@ -1,62 +1,49 @@
-{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,DataKinds #-}
-
 module MDS where
 
+import qualified Data.Map.Strict as M
 import Data.Function
-import qualified Data.Map as M
-import Data.Maybe
-import Text.Printf
 import Data.List
+import Text.Printf
 
 import Record
 import Info
 import Valuation
 
- -- ================= MDS EXPLANATIONS ON ANNOGTATED VALUES =======================
 
-type ValDiff a = Rec a
-type Barrier a = Rec a
-type Support a = Rec a
-type MDS a = Rec a
-type Dom a = Rec a
-type Explain b = (ValDiff b,Support b,Barrier b,[Dom b],[MDS b])
+-- Explanation Structure:
+--  (support, barrier, dominators, mds)
+--
+type Explain a = (Rec a,Rec a,[Rec a],[Rec a])
 
-explain :: Ord a => ValDiff a -> Explain a
-explain v = (v,mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss) 
+-- Summarized set
+--
+data SumSet a = SumSet {unSumSet :: ([a],Double)}
+
+instance Show a => Show (SumSet a) where
+  show (SumSet (xs,d))= showSet (map show xs) ++ " : " ++ printf ("%.2f") d
+
+
+explain :: Ord a => Rec a -> Explain a
+explain v = (mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss)
   where
-    (support,barrier) = partition (\(x,y) -> y>0) (fromRec v)
-    absSum = abs.sum.map snd
+    (support,barrier) = partition ((>0) . snd) (fromRec v)
+    absSum = abs . sum . map snd
     doms   = [d | d <- subsequences support, absSum d > absSum barrier]
     sdoms  = sortBy (compare `on` length) doms
     mdss   = takeWhile (\p -> length p == (length.head) sdoms) sdoms
     smdss  = reverse $ sortBy (compare `on` absSum) mdss
 
--- ========================= PRITNTING EXPLANATIONS =====================
--- ======================================================================
+dominators :: Ord a => Rec a -> [Rec a]
+dominators r = ds where (_,_,ds,_) = explain r
 
-pdom :: Show b => Explain b -> IO ()
-pdom (x,y,z,w,_) = do
-  ph (x,y,z)
-  putStrLn "\nDominators:"
-  mapM_ pd w
+mds :: Ord a => Rec a -> [Rec a]
+mds r = ds where (_,_,_,ds) = explain r
 
-pmds :: Show b => Explain b -> IO ()
-pmds (x,y,z,_,w) = do
-  ph (x,y,z)
-  putStrLn "\nMDS:"
-  mapM_ pd w
+ragg  :: Ord a => ([Double] -> Double) -> Rec a -> SumSet a
+ragg f r = SumSet (dom,f rng)
+           where m = unRec r
+                 dom = M.keys m
+                 rng = M.elems m
 
--- ========================= HELPER FUNCTIONS============================
--- ======================================================================
-
-pd :: Show a => a -> IO ()
-pd = putStrLn.show
-
-ph :: Show b => (ValDiff b,Support b,Barrier b) -> IO ()
-ph (a,b,c) = do
-      putStrLn "\nValue Difference:"
-      putStrLn $ show a
-      putStrLn "\nSupport:"
-      pd b
-      putStrLn "\nBarrier:"
-      pd c
+rsum :: Ord a => Rec a -> SumSet a
+rsum = ragg sum

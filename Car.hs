@@ -116,22 +116,34 @@ cars = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.
 {Honda -> 50.07, BMW -> 49.93}
 -}
 
+cars' :: Val Car (Feature,Opinion)
+cars' = shrinkVal cars
+
 
 -- (7) Explaining decisions
 --
 vdCars :: Rec (Feature,Opinion,Weight)
 vdCars = diff cars Honda BMW
 
+vdCars' :: Rec (Feature,Opinion)
+vdCars' = diff cars' Honda BMW
+
 exp0 :: Explain (Feature,Opinion,Weight)
-exp0@(vd0,sup0,bar0,doms0,mds0:_) = explain vdCars
+exp0@(sup0,bar0,doms0,mds0:_) = explain vdCars
+
+exp0' :: Explain (Feature,Opinion)
+exp0'@(sup0',bar0',doms0',mds0':_) = explain vdCars'
 
 exp1 :: Explain Opinion
 exp1 = generalize vdCars
 
+exp1' :: Explain Opinion
+exp1' = generalize vdCars'
+
 exp2 :: Explain Feature
 exp2 = generalize vdCars
 
-mds0r :: MDS (Feature,Opinion)
+mds0r :: Rec (Feature,Opinion)
 mds0r = shrinkRec mds0
 
 featureFocus = factorize mds0r :: Focus Feature Opinion

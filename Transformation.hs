@@ -10,6 +10,7 @@ import Data.Maybe
 
 import Record
 import Info
+import Valuation
 import Focus
 import Dimension
 import MDS hiding (compare)
@@ -27,7 +28,7 @@ import MDS hiding (compare)
 -- terms of one level at a time.
 
 -- generalize :: (Ord b,Split a b c) => ValDiff a -> Explain b
-generalize :: (Ord a,Ord b,Covers a b) => ValDiff a -> Explain b
+generalize :: (Ord a,Ord b,Covers a b) => Rec a -> Explain b
 generalize = explain.projectRec
 
 -- ================== Selector ==========================================
@@ -71,6 +72,10 @@ projectRec x = M.foldrWithKey iterRec emptyRec (groupRecBy project x)
 -- the denoise function to achieve this.
 shrinkRec :: (Ord a,Ord b,Shrink a b) => Rec a -> Rec b
 shrinkRec = onRec (M.mapKeys shrink)
+
+shrinkVal :: (Ord o,Ord a,Ord b,Shrink a b) => Val o a -> Val o b
+shrinkVal = onInfo (M.map shrinkRec)
+
 
 -- ================== FACTORIZING EXPLANATIONS ===============================
 -- ===========================================================================

@@ -92,9 +92,9 @@ percentRec :: Ord a => Rec a -> Rec a
 percentRec r = mapRec (mkPercent (sumRec r)) r
 
 -- first component shows how many decimal places are to be shown
--- second argument is any string to be concatenated at end. 
+-- second argument is any string to be concatenated at end.
 showPairD :: Show a => Int -> String -> (a,Double) -> String
-showPairD n s (x,y) = show x ++ " -> " ++ printf ("%."++show n++"f") y ++ s 
+showPairD n s (x,y) = show x ++ " -> " ++ printf ("%."++show n++"f") y ++ s
 
 showSet :: [String] -> String
 showSet xs = "{" ++ intercalate ", " xs ++ "}"
@@ -103,7 +103,7 @@ showSetLn :: [String] -> String
 showSetLn xs = "{" ++ intercalate ",\n " xs ++ "}"
 
 -- show record values as percentages
-showRec :: Show a => Int -> String -> Rec a -> String 
+showRec :: Show a => Int -> String -> Rec a -> String
 showRec n s = showSet . map (showPairD n s) . fromRec
 
 instance Show a => Show (Rec a) where
