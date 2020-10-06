@@ -28,8 +28,8 @@ import MDS hiding (compare)
 -- terms of one level at a time.
 
 -- generalize :: (Ord b,Split a b c) => ValDiff a -> Explain b
-generalize :: (Ord a,Ord b,Covers a b) => Rec a -> Explain b
-generalize = explain.projectRec
+generalize :: (Ord a,Ord b,Covers a b) => Rec a -> Analysis b
+generalize = analyze . projectRec
 
 -- ================== Selector ==========================================
 -- ========================================================================

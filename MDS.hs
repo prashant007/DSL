@@ -1,3 +1,4 @@
+{-# LANGUAGE  MultiParamTypeClasses, FunctionalDependencies #-}
 module MDS where
 
 import qualified Data.Map.Strict as M
@@ -10,21 +11,31 @@ import Info
 import Valuation
 
 
--- Explanation Structure:
+-- Analysis of Decisions:
 --  (support, barrier, dominators, mds)
 --
-type Explain a = (Rec a,Rec a,[Rec a],[Rec a])
+type Analysis a = (Rec a,Rec a,[Rec a],[Rec a])
+
 
 -- Summarized set
 --
-data SumSet a = SumSet {unSumSet :: ([a],Double)}
+data SumSet a = SumSet [a] Double
 
 instance Show a => Show (SumSet a) where
-  show (SumSet (xs,d))= showSet (map show xs) ++ " : " ++ printf ("%.2f") d
+  show (SumSet xs d) = showSet (map show xs) ++ " : " ++ printf ("%.2f") d
 
 
-explain :: Ord a => Rec a -> Explain a
-explain v = (mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss)
+-- Dominance relation
+--
+data Dominance a = Dominance (SumSet a) (SumSet a)
+
+instance Show a => Show (Dominance a) where
+  show (Dominance x y) = show x ++ " > |" ++ show y ++"|"
+
+
+
+analyze :: Ord a => Rec a -> Analysis a
+analyze v = (mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss)
   where
     (support,barrier) = partition ((>0) . snd) (fromRec v)
     absSum = abs . sum . map snd
@@ -34,16 +45,18 @@ explain v = (mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss)
     smdss  = reverse $ sortBy (compare `on` absSum) mdss
 
 dominators :: Ord a => Rec a -> [Rec a]
-dominators r = ds where (_,_,ds,_) = explain r
+dominators r = ds where (_,_,ds,_) = analyze r
 
 mds :: Ord a => Rec a -> [Rec a]
-mds r = ds where (_,_,_,ds) = explain r
+mds r = ds where (_,_,_,ds) = analyze r
 
-ragg  :: Ord a => ([Double] -> Double) -> Rec a -> SumSet a
-ragg f r = SumSet (dom,f rng)
-           where m = unRec r
-                 dom = M.keys m
-                 rng = M.elems m
+explain :: Ord a => Rec a -> Dominance a
+explain r = Dominance (total d) (total b)
+            where (_,b,_,d:_) = analyze r
 
-rsum :: Ord a => Rec a -> SumSet a
-rsum = ragg sum
+
+instance Aggregate (Rec a) (SumSet a) where
+  agg f r = SumSet dom (f rng)
+             where m = unRec r
+                   dom = M.keys m
+                   rng = M.elems m

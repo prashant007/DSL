@@ -128,20 +128,23 @@ vdCars = diff cars Honda BMW
 vdCars' :: Rec (Feature,Opinion)
 vdCars' = diff cars' Honda BMW
 
-exp0 :: Explain (Feature,Opinion,Weight)
-exp0@(sup0,bar0,doms0,mds0:_) = explain vdCars
+an0 :: Analysis (Feature,Opinion,Weight)
+an0@(sup0,bar0,doms0,mds0:_) = analyze vdCars
 
-exp0' :: Explain (Feature,Opinion)
-exp0'@(sup0',bar0',doms0',mds0':_) = explain vdCars'
+expl :: Dominance (Feature,Opinion)
+expl = explain vdCars'
 
-exp1 :: Explain Opinion
-exp1 = generalize vdCars
+an0' :: Analysis (Feature,Opinion)
+an0'@(sup0',bar0',doms0',mds0':_) = analyze vdCars'
 
-exp1' :: Explain Opinion
-exp1' = generalize vdCars'
+an1 :: Analysis Opinion
+an1 = generalize vdCars
 
-exp2 :: Explain Feature
-exp2 = generalize vdCars
+an1' :: Analysis Opinion
+an1' = generalize vdCars'
+
+an2 :: Analysis Feature
+an2 = generalize vdCars
 
 mds0r :: Rec (Feature,Opinion)
 mds0r = shrinkRec mds0

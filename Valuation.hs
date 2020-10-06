@@ -1,3 +1,4 @@
+{-# LANGUAGE  MultiParamTypeClasses, FunctionalDependencies #-}
 module Valuation where
 
 import qualified Data.Map.Strict as M
@@ -18,6 +19,21 @@ import Dimension
 class Ord a => Valence a where
    valence :: a -> Bool
    valence _ = True
+
+
+-- Aggregation Structures
+--
+class Aggregate a b | a -> b where
+  agg :: ([Double] -> Double) -> a -> b
+
+total :: Aggregate a b => a -> b
+total = agg sum
+
+average :: Aggregate a b => a -> b
+average = agg (\xs->sum xs/fromIntegral (length xs))
+
+instance Aggregate (Info o a) (Rec o) where
+  agg f = Rec . M.map (f . M.elems . unRec) . unInfo
 
 
 -- Valuation
@@ -46,15 +62,6 @@ valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members
 
 val :: (Set o,Valence a,Set a) => Info o a -> Val o (OneTuple a)
 val = mkOneTuple . valuation
-
-agg  :: Ord a => ([Double] -> Double) -> Val o a -> Rec o
-agg f = Rec . M.map (f . M.elems . unRec) . unInfo
-
-total :: Ord a => Val o a -> Rec o
-total = agg sum
-
-average :: Ord a => Val o a -> Rec o
-average = agg (\xs->sum xs/fromIntegral (length xs))
 
 mkOneTuple :: (Ord o,Ord a) => Val o a -> Val o (OneTuple a)
 mkOneTuple = mapInfo $ onRec (M.mapKeys OneTuple)
