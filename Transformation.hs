@@ -67,14 +67,6 @@ projectRec x = M.foldrWithKey iterRec emptyRec (groupRecBy project x)
 -- ===================== REDUCE =============================================
 -- ==========================================================================
 
--- Many a times the record value may have an argument that stays the same in all
--- the elements of an Norm value. The Shrink type class provides a way, using
--- the denoise function to achieve this.
-shrinkRec :: (Ord a,Ord b,Shrink a b) => Rec a -> Rec b
-shrinkRec = onRec (M.mapKeys shrink)
-
-shrinkVal :: (Ord o,Ord a,Ord b,Shrink a b) => Val o a -> Val o b
-shrinkVal = onInfo (M.map shrinkRec)
 
 
 -- ================== FACTORIZING EXPLANATIONS ===============================

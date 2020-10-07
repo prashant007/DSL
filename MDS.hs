@@ -9,6 +9,7 @@ import Text.Printf
 import Record
 import Info
 import Valuation
+import Dimension
 
 
 -- Analysis of Decisions:
@@ -30,7 +31,18 @@ instance Show a => Show (SumSet a) where
 data Dominance a = Dominance (SumSet a) (SumSet a)
 
 instance Show a => Show (Dominance a) where
-  show (Dominance x y) = show x ++ " > |" ++ show y ++"|"
+  show (Dominance x y) = show x ++ " > |" ++ show y ++ "|"
+
+
+-- Explanation
+--
+data Explanation o a = Explanation o o (Dominance a)
+
+instance (Show o,Show a) => Show (Explanation o a) where
+  show (Explanation w r d) =
+       show w ++ " is the best option; it is better than " ++ show r
+                             ++ " because\n" ++ show d
+
 
 
 
@@ -50,9 +62,19 @@ dominators r = ds where (_,_,ds,_) = analyze r
 mds :: Ord a => Rec a -> [Rec a]
 mds r = ds where (_,_,_,ds) = analyze r
 
-explain :: Ord a => Rec a -> Dominance a
-explain r = Dominance (total d) (total b)
-            where (_,b,_,d:_) = analyze r
+dominance :: Ord a => Rec a -> Dominance a
+dominance r = Dominance (total d) (total b)
+              where (_,b,_,d:_) = analyze r
+
+-- explain :: (Ord o,Ord a) => Val o a -> Explanation o a
+-- explain v = Explanation win rup (Dominance (total d) (total b))
+--             where (win,rup)   = (winner v, runnerUp v)
+--                   (_,b,_,d:_) = analyze $ diff v win rup
+
+explain :: (Ord o,Ord a,Ord b,Shrink a b) => Val o a -> Explanation o b
+explain v = Explanation win rup (Dominance (total d) (total b))
+            where (win,rup)   = (winner v, runnerUp v)
+                  (_,b,_,d:_) = analyze $ diff (shrinkVal v) win rup
 
 
 instance Aggregate (Rec a) (SumSet a) where

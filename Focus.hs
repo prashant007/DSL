@@ -12,7 +12,7 @@ import Data.Maybe
 import Record
 import Info
 import Dimension
-import MDS hiding (compare)
+-- import MDS hiding (compare)
 
 
 -- ========================== FACTORING =====================================

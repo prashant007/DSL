@@ -82,6 +82,18 @@ sumRec = foldRec (\x y -> x + abs y) 0
 mkOneTupleRec :: Ord a => Rec a -> Rec (OneTuple a)
 mkOneTupleRec = onRec (M.mapKeys OneTuple)
 
+-- finding the maximum record entry
+--
+maxEntry :: Rec a -> (a,Double)
+maxEntry = foldRecWithKey bigger (undefined,minDouble)
+           where bigger k x (l,y) = if x>y then (k,x) else (l,y)
+
+minDouble :: Double
+minDouble = encodeFloat 1 $ fst (floatRange 1.0) - floatDigits 1.0
+
+sndMaxEntry :: Ord a => Rec a -> (a,Double)
+sndMaxEntry r = maxEntry (deleteRec m r)
+                where (m,_) = maxEntry r
 
 type Percent = Double
 
@@ -106,8 +118,12 @@ showSetLn xs = "{" ++ intercalate ",\n " xs ++ "}"
 showRec :: Show a => Int -> String -> Rec a -> String
 showRec n s = showSet . map (showPairD n s) . fromRec
 
+
+-- Pretty Printing
+--
 instance Show a => Show (Rec a) where
   show = showRec 2 ""
+
 
 -- Records as numbers
 --

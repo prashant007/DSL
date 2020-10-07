@@ -57,8 +57,10 @@ v3CarF = valuation threeCars
 -- opinions3 = delAttribute Price carFeatures
 -- opinions4 = modAttribute Price Honda 45000 carFeatures
 
-vd :: Rec Feature
-vd = diff vCarF Honda BMW
+-- using "0" here because vd is redefined later
+--
+vd0 :: Rec Feature
+vd0 = diff vCarF Honda BMW
 
 vd3 :: Rec Feature
 vd3 = diff (valuation threeCars) Honda BMW
@@ -68,7 +70,7 @@ vd3 = diff (valuation threeCars) Honda BMW
 -- (4) Value difference impact
 --
 vdi2 :: Focus Feature ()
-vdi2 = impact vd
+vdi2 = impact vd0
 
 vdi3 :: Focus Feature ()
 vdi3 = impact vd3
@@ -122,35 +124,43 @@ cars' = shrinkVal cars
 
 -- (7) Explaining decisions
 --
+
+{-
 vdCars :: Rec (Feature,Opinion,Weight)
 vdCars = diff cars Honda BMW
-
-vdCars' :: Rec (Feature,Opinion)
-vdCars' = diff cars' Honda BMW
 
 an0 :: Analysis (Feature,Opinion,Weight)
 an0@(sup0,bar0,doms0,mds0:_) = analyze vdCars
 
-expl :: Dominance (Feature,Opinion)
-expl = explain vdCars'
-
-an0' :: Analysis (Feature,Opinion)
-an0'@(sup0',bar0',doms0',mds0':_) = analyze vdCars'
-
 an1 :: Analysis Opinion
 an1 = generalize vdCars
 
-an1' :: Analysis Opinion
-an1' = generalize vdCars'
-
 an2 :: Analysis Feature
 an2 = generalize vdCars
+-}
 
-mds0r :: Rec (Feature,Opinion)
-mds0r = shrinkRec mds0
 
-featureFocus = factorize mds0r :: Focus Feature Opinion
-opinionFocus = factorize mds0r :: Focus Opinion Feature
+vd :: Rec (Feature,Opinion)
+vd = diff (shrinkVal cars) Honda BMW
+
+domi :: Dominance (Feature,Opinion)
+domi = dominance vd
+
+expl :: Explanation Car (Feature,Opinion)
+expl = explain cars
+
+
+an0' :: Analysis (Feature,Opinion)
+an0'@(sup0',bar0',doms0',mds0':_) = analyze vd
+
+an1' :: Analysis Opinion
+an1' = generalize vd
+
+-- mds0r :: Rec (Feature,Opinion)
+-- mds0r = shrinkRec mds0 -- == mds0'
+
+featureFocus = factorize mds0' :: Focus Feature Opinion
+opinionFocus = factorize mds0' :: Focus Opinion Feature
 
 
 factorize' = factorize.mkOneTupleRec
