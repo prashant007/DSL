@@ -34,16 +34,24 @@ instance Valence Weight
 carFeatures :: Info Car Feature
 carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
                     BMW   --> [Price --> 36000, MPG --> 32, Safety --> 9.1]]
+<<<<<<< HEAD
 
 -- carFeatures :: Val Car Feature
 -- carFeatures = info [Honda --> [Price --> (0.4857), MPG --> (0.4839 - 0.00), Safety --> (0.5185 - 0.0)],
 --                     BMW   --> [Price --> 0.5143, MPG --> 0.5161, Safety --> 0.4815]]
+=======
+>>>>>>> 80574f8cb836389239d3f7eecba3e50c773bf209
 
 
--- (2) creating a valuation from data (only for opinions)
+-- (2) Creating a valuation from data (only for opinions)
 --
-carsV :: Val Car Feature
-carsV = valuation carFeatures
+vCarF :: Val Car Feature
+vCarF = valuation carFeatures
+
+{-
+*Car> total vCarF
+{Honda -> 150.90, BMW -> 149.10}
+-}
 
 
 -- (3) Some variation: adding/deleting/modifying a feature attribute
@@ -52,48 +60,35 @@ threeCars :: Info Car Feature
 threeCars = carFeatures `union`
             info [Toyota --> [Price --> 27000, MPG --> 30, Safety --> 9.4]]
 
-opinions3 = delAttribute Price carFeatures
-opinions4 = modAttribute Price Honda 45000 carFeatures
+v3CarF :: Val Car Feature
+v3CarF = valuation threeCars
 
-vdThreeCars :: Rec Feature
-vdThreeCars = diff (valuation threeCars) Honda BMW
+-- opinions3 = delAttribute Price carFeatures
+-- opinions4 = modAttribute Price Honda 45000 carFeatures
 
--- vdCars ::
-vdCars = diff (valuation carFeatures) Honda BMW
-
-ai :: Focus Feature ()
-ai = factorize (mkOneTupleRec vdCars)
-
-aiThreeCars :: Focus Feature ()
-aiThreeCars = factorize (mkOneTupleRec vdThreeCars)
-
--- (3) Weighing attributes
+-- using "0" here because vd is redefined later
 --
-weight :: a -> [(Weight,a)]
-weight x = [Weighted --> x]
+vd0 :: Rec Feature
+vd0 = diff vCarF Honda BMW
 
-equalWeights :: Info Feature Weight
-equalWeights = info [Price  --> weight 1,
-                     MPG    --> weight 1,
-                     Safety --> weight 1]
-
-personalWeights :: Info Feature Weight
-personalWeights = info [Price  --> weight 5,
-                        MPG    --> weight 3,
-                        Safety --> weight 2]
--- equalWeights = addAttribute Weighted [Price --> 1,MPG --> 1, Safety --> 1] objects
--- equalWeights = addAttribute Weighted [Price --> 1,MPG --> 2, Safety --> 1] objects
-
-carEW :: Val Car (Feature,Weight)
-carEW = mkOneTuple carsV `extendBy` equalWeights
-
-carPW :: Val Car (Feature,Weight)
-carPW = mkOneTuple carsV `extendBy` personalWeights
+vd3 :: Rec Feature
+vd3 = diff (valuation threeCars) Honda BMW
 
 
--- (4) Adding dimensions to car opinions (opinions and weights)
+
+-- (4) Value difference impact
+--
+vdi2 :: Focus Feature ()
+vdi2 = impact vd0
+
+vdi3 :: Focus Feature ()
+vdi3 = impact vd3
+
+
+-- (5) Adding dimensions and extending valuation
 --
 featureOpinions :: Info Feature Opinion
+<<<<<<< HEAD
 featureOpinions = info [Price  --> [Personal --> 0.5, Expert --> 0.3],
                         MPG    --> [Personal --> 0.3, Expert --> 0.5],
                         Safety --> [Personal --> 0.2, Expert --> 0.2]]
@@ -103,27 +98,38 @@ featureOpinions = info [Price  --> [Personal --> 0.5, Expert --> 0.3],
 
 weights :: Info Opinion Weight
 weights = info [Personal --> weight 0.6,Expert --> weight 0.4]
+=======
+featureOpinions = info [Price  --> [Personal --> 5, Expert --> 3],
+                        MPG    --> [Personal --> 3, Expert --> 5],
+                        Safety --> [Personal --> 2, Expert --> 2]]
 
-onlyPersonal :: Info Opinion Weight
-onlyPersonal = addAttribute Weighted [Personal --> 1,Expert --> 0] objects
+>>>>>>> 80574f8cb836389239d3f7eecba3e50c773bf209
 
-bRec :: Rec Feature
-bRec = mkRec [Price --> 36000, MPG  --> 24, Safety --> 70]
-
-bInfo :: Info Car Feature
-bInfo = mkInfo [BMW --> bRec]
-
-
--- (5) Creating valuations for extended data
---
 featureVal :: Val Car (OneTuple Feature)
-featureVal = mkOneTuple carsV
+featureVal = mkOneTuple vCarF
 
 carOpinions :: Val Car (Feature,Opinion)
 carOpinions = featureVal `extendBy` featureOpinions
+
+{-
+*Car> total carOpinions
+{Honda -> 99.98, BMW -> 100.02}
+
+*Car> total $ only Personal carOpinions
+{Honda -> 50.37, BMW -> 49.63}
+
+*Car> total $ only Expert carOpinions
+{Honda -> 49.61, BMW -> 50.39}
+-}
+
+
+-- (6) Top-level: Weighting opinions
 --
--- carsWUF :: Val Car (Weight,Opinion,Feature)
--- carsWUF = extend carsUF weights
+weight :: a -> [(Weight,a)]
+weight x = [Weighted --> x]
+
+weights :: Info Opinion Weight
+weights = info [Personal --> weight 0.6,Expert --> weight 0.4]
 
 cars :: Val Car (Feature,Opinion,Weight)
 -- carFeatures = val carFeatures `extendBy` featureOpinions `extendBy` weights
@@ -131,23 +137,18 @@ cars = mkOneTuple carsV `extendBy` featureOpinions `extendBy` weights
 -- cars = carOpinions `extendBy` weights
 -- cars = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.4]
 
-carsP :: Val Car (Feature,Opinion,Weight)
--- carFeatures = val carFeatures `extendBy` featureOpinions `extendBy` weights
-carsP = mkOneTuple carsV `extendBy` featureOpinions `extendBy` onlyPersonal
+{-
+*Car> total cars
+{Honda -> 50.07, BMW -> 49.93}
+-}
+
+cars' :: Val Car (Feature,Opinion)
+cars' = shrinkVal cars
 
 
--- (6) Explaining decisions
+-- (7) Explaining decisions
 --
-type CarDecomp = Rec (Feature,Opinion,Weight)
-
--- Valuations for specific cars
---
--- honda :: CarDecomp
--- honda = select Honda cars
---
--- bmw :: CarDecomp
--- bmw = select BMW cars
---
+<<<<<<< HEAD
 
 vd = diff (valuation carFeatures) Honda BMW
 vd3 = diff (valuation threeCars) Honda BMW
@@ -155,21 +156,45 @@ vd3 = diff (valuation threeCars) Honda BMW
 
 vdCar :: CarDecomp
 vdCar = cars!Honda - cars!BMW
+=======
+>>>>>>> 80574f8cb836389239d3f7eecba3e50c773bf209
 
-exp0 :: Explain (Feature,Opinion,Weight)
-exp0@(vd0,sup0,bar0,doms0,mds0:_) = explain vdCar
+{-
+vdCars :: Rec (Feature,Opinion,Weight)
+vdCars = diff cars Honda BMW
 
-exp1 :: Explain Opinion
-exp1 = generalize vdCar
+an0 :: Analysis (Feature,Opinion,Weight)
+an0@(sup0,bar0,doms0,mds0:_) = analyze vdCars
 
-exp2 :: Explain Feature
-exp2 = generalize vdCar
+an1 :: Analysis Opinion
+an1 = generalize vdCars
 
-mds0r :: MDS (Feature,Opinion)
-mds0r = reduce mds0
+an2 :: Analysis Feature
+an2 = generalize vdCars
+-}
 
-featureFocus = factorize mds0r :: Focus Feature Opinion
-opinionFocus = factorize mds0r :: Focus Opinion Feature
+
+vd :: Rec (Feature,Opinion)
+vd = diff (shrinkVal cars) Honda BMW
+
+domi :: Dominance (Feature,Opinion)
+domi = dominance vd
+
+expl :: Explanation Car (Feature,Opinion)
+expl = explain cars
+
+
+an0' :: Analysis (Feature,Opinion)
+an0'@(sup0',bar0',doms0',mds0':_) = analyze vd
+
+an1' :: Analysis Opinion
+an1' = generalize vd
+
+-- mds0r :: Rec (Feature,Opinion)
+-- mds0r = shrinkRec mds0 -- == mds0'
+
+featureFocus = factorize mds0' :: Focus Feature Opinion
+opinionFocus = factorize mds0' :: Focus Opinion Feature
 
 bar :: Rec (Feature,Opinion)
 bar = reduce bar0 
@@ -190,4 +215,3 @@ prior x y = prior' x (L.transpose y)
   where
     prior' :: Num a => [[a]] -> [[a]] -> [a]
     prior' = zipWith (\a -> (sum.zipWith (*) a)) 
-

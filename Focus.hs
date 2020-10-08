@@ -11,8 +11,8 @@ import Data.Maybe
 
 import Record
 import Info
-import Classes
-import MDS hiding (compare)
+import Dimension
+-- import MDS hiding (compare)
 
 
 -- ========================== FACTORING =====================================
@@ -56,10 +56,10 @@ instance {-# OVERLAPPING #-} Show k => Show (Focus k ()) where
 instance {-# OVERLAPPING #-} (Show k,Show a) => Show (Focus k a) where
   show = showSetLn . map showF . fromFocus
     where
-        showF (k,(v,r)) = showFPair (k,v) ++ " " ++ showRec 0 "%" r 
+        showF (k,(v,r)) = showFPair (k,v) ++ " " ++ showRec 0 "%" r
 
 
-showFPair :: Show k => (k,Double) -> String 
+showFPair :: Show k => (k,Double) -> String
 showFPair (k,v) = show k ++ " -> " ++ printf "%.0f" v ++ "%"
 
 -- this changes focused values from absolutes values to percentages

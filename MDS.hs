@@ -1,62 +1,84 @@
-{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,DataKinds #-}
-
+{-# LANGUAGE  MultiParamTypeClasses, FunctionalDependencies #-}
 module MDS where
 
+import qualified Data.Map.Strict as M
 import Data.Function
-import qualified Data.Map as M
-import Data.Maybe
-import Text.Printf
 import Data.List
+import Text.Printf
 
 import Record
 import Info
 import Valuation
+import Dimension
 
- -- ================= MDS EXPLANATIONS ON ANNOGTATED VALUES =======================
 
-type ValDiff a = Rec a
-type Barrier a = Rec a
-type Support a = Rec a
-type MDS a = Rec a
-type Dom a = Rec a
-type Explain b = (ValDiff b,Support b,Barrier b,[Dom b],[MDS b])
+-- Analysis of Decisions:
+--  (support, barrier, dominators, mds)
+--
+type Analysis a = (Rec a,Rec a,[Rec a],[Rec a])
 
-explain :: Ord a => ValDiff a -> Explain a
-explain v = (v,mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss) 
+
+-- Summarized set
+--
+data SumSet a = SumSet [a] Double
+
+instance Show a => Show (SumSet a) where
+  show (SumSet xs d) = showSet (map show xs) ++ " : " ++ printf ("%.2f") d
+
+
+-- Dominance relation
+--
+data Dominance a = Dominance (SumSet a) (SumSet a)
+
+instance Show a => Show (Dominance a) where
+  show (Dominance x y) = show x ++ " > |" ++ show y ++ "|"
+
+
+-- Explanation
+--
+data Explanation o a = Explanation o o (Dominance a)
+
+instance (Show o,Show a) => Show (Explanation o a) where
+  show (Explanation w r d) =
+       show w ++ " is the best option; it is better than " ++ show r
+                             ++ " because\n" ++ show d
+
+
+
+
+analyze :: Ord a => Rec a -> Analysis a
+analyze v = (mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss)
   where
-    (support,barrier) = partition (\(x,y) -> y>0) (fromRec v)
-    absSum = abs.sum.map snd
+    (support,barrier) = partition ((>0) . snd) (fromRec v)
+    absSum = abs . sum . map snd
     doms   = [d | d <- subsequences support, absSum d > absSum barrier]
     sdoms  = sortBy (compare `on` length) doms
     mdss   = takeWhile (\p -> length p == (length.head) sdoms) sdoms
     smdss  = reverse $ sortBy (compare `on` absSum) mdss
 
--- ========================= PRITNTING EXPLANATIONS =====================
--- ======================================================================
+dominators :: Ord a => Rec a -> [Rec a]
+dominators r = ds where (_,_,ds,_) = analyze r
 
-pdom :: Show b => Explain b -> IO ()
-pdom (x,y,z,w,_) = do
-  ph (x,y,z)
-  putStrLn "\nDominators:"
-  mapM_ pd w
+mds :: Ord a => Rec a -> [Rec a]
+mds r = ds where (_,_,_,ds) = analyze r
 
-pmds :: Show b => Explain b -> IO ()
-pmds (x,y,z,_,w) = do
-  ph (x,y,z)
-  putStrLn "\nMDS:"
-  mapM_ pd w
+dominance :: Ord a => Rec a -> Dominance a
+dominance r = Dominance (total d) (total b)
+              where (_,b,_,d:_) = analyze r
 
--- ========================= HELPER FUNCTIONS============================
--- ======================================================================
+-- explain :: (Ord o,Ord a) => Val o a -> Explanation o a
+-- explain v = Explanation win rup (Dominance (total d) (total b))
+--             where (win,rup)   = (winner v, runnerUp v)
+--                   (_,b,_,d:_) = analyze $ diff v win rup
 
-pd :: Show a => a -> IO ()
-pd = putStrLn.show
+explain :: (Ord o,Ord a,Ord b,Shrink a b) => Val o a -> Explanation o b
+explain v = Explanation win rup (Dominance (total d) (total b))
+            where (win,rup)   = (winner v, runnerUp v)
+                  (_,b,_,d:_) = analyze $ diff (shrinkVal v) win rup
 
-ph :: Show b => (ValDiff b,Support b,Barrier b) -> IO ()
-ph (a,b,c) = do
-      putStrLn "\nValue Difference:"
-      putStrLn $ show a
-      putStrLn "\nSupport:"
-      pd b
-      putStrLn "\nBarrier:"
-      pd c
+
+instance Aggregate (Rec a) (SumSet a) where
+  agg f r = SumSet dom (f rng)
+             where m = unRec r
+                   dom = M.keys m
+                   rng = M.elems m
