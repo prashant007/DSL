@@ -50,23 +50,6 @@ sensE2 = sensE sens42
 sensE3 = sensE sens43
 sensE4 = sensE sens44
 
-{-
-*Main> sensE1
-(Trump,Clinton) : {Environment -> 0.1762, Economic -> 0.4019, Foreign -> 0.5220, Health -> 0.1636}
-
-*Main> sensE2
-(Trump,Clinton) : {(Environment,Young) -> *, (Environment,MiddleAged) -> -0.3844, (Environment,Old) -> -0.4594,
-(Economic,Young) -> *, (Economic,MiddleAged) -> 0.3402, (Economic,Old) -> *, (Foreign,Young) -> *, (Foreign,MiddleAged) -> *,
-(Foreign,Old) -> *, (Health,Young) -> *, (Health,MiddleAged) -> *, (Health,Old) -> *}
-
-*Main> sensE3
-(Trump,Clinton) : {(Young,Rural) -> *, (Young,Urban) -> *, (MiddleAged,Rural) -> *, 
-(MiddleAged,Urban) -> *, (Old,Rural) -> *, (Old,Urban) -> *}
-
-*Main> sensE4
-(Trump,Clinton) : {Rural -> *, Urban -> *}
-*Main>
--}
 
 electTuple = (policyV,demographyV,geographyV,populationV)
 totE = total $ mkOneTuple (valuation policyV) `extendBy` demographyV `extendBy` geographyV `extendBy` populationV

@@ -122,7 +122,7 @@ showRec n s = showSet . map (showPairD n s) . fromRec
 -- Pretty Printing
 --
 instance Show a => Show (Rec a) where
-  show = showRec 4 ""
+  show = showRec 2 ""
 
 
 -- Records as numbers
