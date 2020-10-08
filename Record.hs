@@ -76,7 +76,7 @@ deleteRec a = onRec (M.delete a)
 
 -- summing the values in a record
 sumRec :: Rec a -> Double
-sumRec = foldRec (\x y -> x + abs y) 0
+sumRec = foldRec (\x y -> x + y) 0
 
 -- converting type a of Rec a to OneTuple a
 mkOneTupleRec :: Ord a => Rec a -> Rec (OneTuple a)
@@ -107,7 +107,7 @@ showRec :: Show a => Int -> String -> Rec a -> String
 showRec n s = showSet . map (showPairD n s) . fromRec
 
 instance Show a => Show (Rec a) where
-  show = showRec 2 ""
+  show = showRec 4 ""
 
 -- Records as numbers
 --

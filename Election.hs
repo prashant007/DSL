@@ -30,7 +30,6 @@ policy = info [Clinton --> [Environment --> 180,Economic --> 55, Foreign --> 35,
                Trump   --> [Environment --> 45, Economic --> 220,Foreign --> 140,Health --> 130]]
 
 
-
 -- - Every demography expressed what policies are important to them.
 -- Young voters (300 in number) - 1/3 of youth voters plan to vote based on a candidates education policy, 1/6  each for economic and foregin policy,
 -- and the remaining 1/3 for Health policy. 
@@ -42,11 +41,11 @@ demography = info [Environment --> [Young --> 100,MiddleAged --> 75, Old --> 50]
                    Health      --> [Young --> 100,MiddleAged --> 75, Old --> 150]]
 
   
-
 geography :: Info Demography Geography
 geography = info [Young --> [Rural --> 100,Urban --> 200],
                   MiddleAged --> [Rural --> 150,Urban --> 200],
                   Old --> [Rural --> 250,Urban --> 100]]
+
 
 
 population :: Info Geography Population

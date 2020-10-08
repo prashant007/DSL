@@ -31,6 +31,11 @@ info ons = mkInfo [(o,mkRec ns) | (o,ns) <- ons]
 fromInfo :: Info o a -> [(o,Rec a)]
 fromInfo = M.toList . unInfo
 
+
+-- loookup in a record
+lookupInfo :: (Ord o,Ord a) => (o,a) -> Info o a -> Double
+lookupInfo (o,a)  = lookupRec a . fromJust . M.lookup o . unInfo 
+
 onInfo :: (M.Map o (Rec a) -> M.Map o (Rec b)) -> Info o a -> Info o b
 onInfo f = Info . f . unInfo
 

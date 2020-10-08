@@ -3,6 +3,7 @@ module Car where
 
 import qualified Data.Map.Strict as M
 import Data.Tuple.OneTuple (OneTuple(..))
+import qualified Data.List as L 
 
 import Record
 import Info
@@ -10,6 +11,7 @@ import Valuation
 import MDS
 import Focus
 import Transformation
+
 
 
 -- Car Example
@@ -31,7 +33,11 @@ instance Valence Weight
 --
 carFeatures :: Info Car Feature
 carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
-                    BMW   --> [Price --> 36000, MPG --> 33, Safety --> 9.1]]
+                    BMW   --> [Price --> 36000, MPG --> 32, Safety --> 9.1]]
+
+-- carFeatures :: Val Car Feature
+-- carFeatures = info [Honda --> [Price --> (0.4857), MPG --> (0.4839 - 0.00), Safety --> (0.5185 - 0.0)],
+--                     BMW   --> [Price --> 0.5143, MPG --> 0.5161, Safety --> 0.4815]]
 
 
 -- (2) creating a valuation from data (only for opinions)
@@ -88,15 +94,14 @@ carPW = mkOneTuple carsV `extendBy` personalWeights
 -- (4) Adding dimensions to car opinions (opinions and weights)
 --
 featureOpinions :: Info Feature Opinion
--- featureOpinions = info [Price  --> [Personal --> 0.5, Expert --> 0.2],
---                         MPG    --> [Personal --> 0.3, Expert --> 0.4],
---                         Safety --> [Personal --> 0.2, Expert --> 0.4]]
-featureOpinions = info [Price  --> [Personal --> 5, Expert --> 3],
-                        MPG    --> [Personal --> 3, Expert --> 5],
-                        Safety --> [Personal --> 2, Expert --> 2]]
+featureOpinions = info [Price  --> [Personal --> 0.5, Expert --> 0.3],
+                        MPG    --> [Personal --> 0.3, Expert --> 0.5],
+                        Safety --> [Personal --> 0.2, Expert --> 0.2]]
+-- featureOpinions = info [Price  --> [Personal --> 5, Expert --> 3],
+--                         MPG    --> [Personal --> 3, Expert --> 5],
+--                         Safety --> [Personal --> 2, Expert --> 2]]
 
 weights :: Info Opinion Weight
--- weights = addAttribute Weighted [Personal --> 0.6,Expert --> 0.4] objects
 weights = info [Personal --> weight 0.6,Expert --> weight 0.4]
 
 onlyPersonal :: Info Opinion Weight
@@ -122,9 +127,9 @@ carOpinions = featureVal `extendBy` featureOpinions
 
 cars :: Val Car (Feature,Opinion,Weight)
 -- carFeatures = val carFeatures `extendBy` featureOpinions `extendBy` weights
--- cars = mkOneTuple carsV `extendBy` featureOpinions `extendBy` weights
+cars = mkOneTuple carsV `extendBy` featureOpinions `extendBy` weights
 -- cars = carOpinions `extendBy` weights
-cars = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.4]
+-- cars = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.4]
 
 carsP :: Val Car (Feature,Opinion,Weight)
 -- carFeatures = val carFeatures `extendBy` featureOpinions `extendBy` weights
@@ -143,6 +148,11 @@ type CarDecomp = Rec (Feature,Opinion,Weight)
 -- bmw :: CarDecomp
 -- bmw = select BMW cars
 --
+
+vd = diff (valuation carFeatures) Honda BMW
+vd3 = diff (valuation threeCars) Honda BMW
+
+
 vdCar :: CarDecomp
 vdCar = cars!Honda - cars!BMW
 
@@ -161,9 +171,23 @@ mds0r = reduce mds0
 featureFocus = factorize mds0r :: Focus Feature Opinion
 opinionFocus = factorize mds0r :: Focus Opinion Feature
 
+bar :: Rec (Feature,Opinion)
+bar = reduce bar0 
+
+ex1 :: Rec (Opinion,Feature)
+ex1 = mkRec[(Personal,MPG) --> 0.048,(Personal,Price) --> 0.032,(Expert,Price) --> 0.080]
+
+
 
 factorize' = factorize.mkOneTupleRec
 
 vdTwoCars = diff (valuation carFeatures) Honda BMW
 factTwoCars = factorize' vdTwoCars :: Focus Feature ()
 factThreeCars = factorize' vdThreeCars :: Focus Feature ()
+
+prior :: Num a => [[a]] -> [[a]] -> [a]
+prior x y = prior' x (L.transpose y)
+  where
+    prior' :: Num a => [[a]] -> [[a]] -> [a]
+    prior' = zipWith (\a -> (sum.zipWith (*) a)) 
+
