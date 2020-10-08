@@ -122,6 +122,7 @@ cars' = shrinkVal cars
 
 -- (7) Explaining decisions
 --
+<<<<<<< Updated upstream
 
 {-
 vdCars :: Rec (Feature,Opinion,Weight)
@@ -135,6 +136,8 @@ an2 = generalize vdCars
 -}
 
 
+=======
+>>>>>>> Stashed changes
 vd :: Rec (Feature,Opinion)
 vd = diff (shrinkVal cars) Honda BMW
 
@@ -144,22 +147,20 @@ domi = dominance vd
 expl :: Explanation Car (Feature,Opinion)
 expl = explain cars
 
+-- barF :: Focus Feature Opinion
+-- barF = factorize b
 
-an0' :: Analysis (Feature,Opinion)
-an0'@(sup0',bar0',doms0',mds0':_) = analyze vd
+an :: Analysis (Feature,Opinion)
+an@(sup,bar,dom,mds0:_) = analyze vd
 
-an1' :: Analysis Opinion
-an1' = generalize vd
+an1 :: Analysis Opinion
+an1 = generalize vd
 
--- mds0r :: Rec (Feature,Opinion)
--- mds0r = shrinkRec mds0 -- == mds0'
-
-featureFocus = factorize mds0' :: Focus Feature Opinion
-opinionFocus = factorize mds0' :: Focus Opinion Feature
-
-
-factorize' = factorize.mkOneTupleRec
-
+<<<<<<< Updated upstream
 vdTwoCars = diff (valuation carFeatures) Honda BMW
 factTwoCars = factorize' vdTwoCars :: Focus Feature ()
 factThreeCars = factorize' vd3 :: Focus Feature ()
+=======
+featureFocus = factorize mds0 :: Focus Feature Opinion
+opinionFocus = factorize mds0 :: Focus Opinion Feature
+>>>>>>> Stashed changes
