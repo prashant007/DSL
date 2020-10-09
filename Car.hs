@@ -108,22 +108,22 @@ weight x = [Weighted --> x]
 weights :: Info Opinion Weight
 weights = info [Personal --> weight 0.6,Expert --> weight 0.4]
 
-cars :: Val Car (Feature,Opinion,Weight)
-cars = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.4]
+carsW :: Val Car (Feature,Opinion,Weight)
+carsW = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.4]
 
 {-
 *Car> total cars
 {Honda -> 50.07, BMW -> 49.93}
 -}
 
-cars' :: Val Car (Feature,Opinion)
-cars' = shrinkVal cars
+cars :: Val Car (Feature,Opinion)
+cars = shrinkVal carsW
 
 
 -- (7) Explaining decisions
 --
 vd :: Rec (Feature,Opinion)
-vd = diff (shrinkVal cars) Honda BMW
+vd = diff cars Honda BMW
 
 -- domi :: Dominance (Feature,Opinion)
 -- domi = dominance vd
@@ -142,6 +142,13 @@ hondaO = factor honda :: Focus Opinion Feature
 bmwF = factor honda :: Focus Feature Opinion
 bmwO = factor honda :: Focus Opinion Feature
 
+
+vdO = focus vd :: Rec Opinion
+vdF = focus vd :: Rec Feature
+
+carsO = projInfo cars :: Val Car Opinion
+-- explO = explain' carsO :: Explanation Car Opinion
+explO = explain $ projInfo cars :: Explanation Car Opinion
 
 an1 :: Analysis Opinion
 an1@(_,barO,_,mdsO:_) = generalize vd

@@ -64,6 +64,8 @@ projectRec x = M.foldrWithKey iterRec emptyRec (groupRecBy project x)
     iterRec :: Ord b => b -> Rec a -> Rec b -> Rec b
     iterRec b m = insertRec b (sumRec m)
 
+focus :: (Covers a b,Ord a,Ord b) => Rec a -> Rec b
+focus = projectRec
 
 projInfo :: (Covers a b,Ord a,Ord b) => Info o a -> Info o b
 projInfo = mapInfo projectRec
