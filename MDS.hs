@@ -56,6 +56,9 @@ analyze v = (mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss)
     mdss   = takeWhile (\p -> length p == (length.head) sdoms) sdoms
     smdss  = reverse $ sortBy (compare `on` absSum) mdss
 
+barrier :: Ord a => Rec a -> Rec a
+barrier r = b where (_,b,_,_) = analyze r
+
 dominators :: Ord a => Rec a -> [Rec a]
 dominators r = ds where (_,_,ds,_) = analyze r
 

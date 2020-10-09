@@ -65,7 +65,7 @@ projectRec x = M.foldrWithKey iterRec emptyRec (groupRecBy project x)
     iterRec b m = insertRec b (sumRec m)
 
 
-projInfo :: (Covers a b,Ord a,Ord b) => Info o a -> Info o b 
+projInfo :: (Covers a b,Ord a,Ord b) => Info o a -> Info o b
 projInfo = mapInfo projectRec
 
 -- ===================== REDUCE =============================================
@@ -76,13 +76,14 @@ projInfo = mapInfo projectRec
 -- ================== FACTORIZING EXPLANATIONS ===============================
 -- ===========================================================================
 
-factorize :: (Ord a,Ord b,Ord c,Covers a b,Shrink a c) => Rec a -> Focus b c
-factorize xs = formatFocus . Focus $ zipMap mkFact (unRec . projectRec $ xs)
+-- factor :: (Ord d,Ord a,Ord d',Covers d a,Shrink d d') => Rec d -> Focus a d'
+factor :: (Ord d,Ord a,Ord d',Split d a d') => Rec d -> Focus a d'
+factor xs = formatFocus . Focus $ zipMap mkFact (unRec . projectRec $ xs)
                                                    (groupRecBy project xs)
     where mkFact = \_ x y -> (x,shrinkRec y)
 
 impact :: Ord a => Rec a -> Focus a ()
-impact = factorize . mkOneTupleRec
+impact r = factor (mkOneTupleRec r)
 
 -- ========== VALUE DIFFERENCE IMPACTS (VDI) =================================
 -- ===========================================================================
