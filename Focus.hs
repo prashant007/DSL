@@ -49,9 +49,7 @@ fromFocus :: Focus k a -> [(k,(Double,Rec a))]
 fromFocus = M.toList . unFocus
 
 instance {-# OVERLAPPING #-} Show k => Show (Focus k ()) where
-  show = showSetLn . map showF . fromFocus
-    where
-      showF (k,(v,_)) = showFPair (k,v)
+  show = showSetLn . map (\(k,(v,_)) -> showFPair (k,v)) . fromFocus
 
 instance {-# OVERLAPPING #-} (Show k,Show a) => Show (Focus k a) where
   show = showSetLn . map showF . fromFocus
@@ -67,6 +65,5 @@ formatFocus :: Ord a => Focus k a -> Focus k a
 formatFocus x = mapFocus percentFocus x
   where
     sumF = foldFocus (\b (n,_) -> b + abs n) 0 x
-
     percentFocus :: Ord a => ((Double,Rec a) -> (Percent,Rec a))
     percentFocus (x,y) = (mkPercent sumF x,percentRec y)

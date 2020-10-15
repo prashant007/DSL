@@ -56,6 +56,9 @@ analyze v = (mkRec support,mkRec barrier, map mkRec sdoms,map mkRec smdss)
     mdss   = takeWhile (\p -> length p == (length.head) sdoms) sdoms
     smdss  = reverse $ sortBy (compare `on` absSum) mdss
 
+barrier :: Ord a => Rec a -> Rec a
+barrier r = b where (_,b,_,_) = analyze r
+
 dominators :: Ord a => Rec a -> [Rec a]
 dominators r = ds where (_,_,ds,_) = analyze r
 
@@ -66,16 +69,15 @@ dominance :: Ord a => Rec a -> Dominance a
 dominance r = Dominance (total d) (total b)
               where (_,b,_,d:_) = analyze r
 
--- explain :: (Ord o,Ord a) => Val o a -> Explanation o a
+-- explain :: (Ord o,Ord a,Ord b,Shrink a b) => Val o a -> Explanation o b
 -- explain v = Explanation win rup (Dominance (total d) (total b))
 --             where (win,rup)   = (winner v, runnerUp v)
---                   (_,b,_,d:_) = analyze $ diff v win rup
+--                   (_,b,_,d:_) = analyze $ diff (shrinkVal v) win rup
 
-explain :: (Ord o,Ord a,Ord b,Shrink a b) => Val o a -> Explanation o b
+explain :: (Ord o,Ord a) => Val o a -> Explanation o a
 explain v = Explanation win rup (Dominance (total d) (total b))
             where (win,rup)   = (winner v, runnerUp v)
-                  (_,b,_,d:_) = analyze $ diff (shrinkVal v) win rup
-
+                  (_,b,_,d:_) = analyze $ diff v win rup
 
 instance Aggregate (Rec a) (SumSet a) where
   agg f r = SumSet dom (f rng)

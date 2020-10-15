@@ -109,16 +109,16 @@ weight x = [Weighted --> x]
 weights :: Info Opinion Weight
 weights = info [Personal --> weight 0.6,Expert --> weight 0.4]
 
-cars :: Val Car (Feature,Opinion,Weight)
-cars = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.4]
+carsW :: Val Car (Feature,Opinion,Weight)
+carsW = carOpinions `extendBy` info [Personal --> weight 0.6,Expert --> weight 0.4]
 
 {-
 *Car> total cars
 {Honda -> 50.07, BMW -> 49.93}
 -}
 
-cars' :: Val Car (Feature,Opinion)
-cars' = shrinkVal cars
+cars :: Val Car (Feature,Opinion)
+cars = shrinkVal carsW
 
 
 -- (7) Explaining decisions
@@ -135,31 +135,34 @@ an2 :: Analysis Feature
 an2 = generalize vdCars
 -}
 
-vd :: Rec (Feature,Opinion)
-vd = diff (shrinkVal cars) Honda BMW
 
-domi :: Dominance (Feature,Opinion)
-domi = dominance vd
+vd :: Rec (Feature,Opinion)
+vd = diff cars Honda BMW
+
+-- domi :: Dominance (Feature,Opinion)
+-- domi = dominance vd
 
 expl :: Explanation Car (Feature,Opinion)
 expl = explain cars
 
+-- an :: Analysis (Feature,Opinion)
+-- an@(sup,bar,dom,mds1:_) = analyze vd
+-- -- head (mds vd) == mds1 == honda
+honda = head (mds vd)
+bmw = barrier vd
 
-an0' :: Analysis (Feature,Opinion)
-an0'@(sup0',bar0',doms0',mds0':_) = analyze vd
-
-an1' :: Analysis Opinion
-an1' = generalize vd
-
--- mds0r :: Rec (Feature,Opinion)
--- mds0r = shrinkRec mds0 -- == mds0'
-
-featureFocus = factorize mds0' :: Focus Feature Opinion
-opinionFocus = factorize mds0' :: Focus Opinion Feature
+hondaF = factor honda :: Focus Feature Opinion
+hondaO = factor honda :: Focus Opinion Feature
+bmwF = factor honda :: Focus Feature Opinion
+bmwO = factor honda :: Focus Opinion Feature
 
 
-factorize' = factorize.mkOneTupleRec
+vdO = focus vd :: Rec Opinion
+vdF = focus vd :: Rec Feature
 
-vdTwoCars = diff (valuation carFeatures) Honda BMW
-factTwoCars = factorize' vdTwoCars :: Focus Feature ()
-factThreeCars = factorize' vd3 :: Focus Feature ()
+carsO = projInfo cars :: Val Car Opinion
+-- explO = explain' carsO :: Explanation Car Opinion
+explO = explain $ projInfo cars :: Explanation Car Opinion
+
+an1 :: Analysis Opinion
+an1@(_,barO,_,mdsO:_) = generalize vd
