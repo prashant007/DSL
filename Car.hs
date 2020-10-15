@@ -8,7 +8,7 @@ import Record
 import Info
 import Valuation
 import MDS
-import Focus
+import Factor
 import Transformation
 
 
@@ -66,14 +66,12 @@ vd0 = diff vCarF Honda BMW
 vd3 :: Rec Feature
 vd3 = diff (valuation threeCars) Honda BMW
 
-
-
 -- (4) Value difference impact
 --
-vdi2 :: Focus Feature ()
+vdi2 :: Factor Feature ()
 vdi2 = impact vd0
 
-vdi3 :: Focus Feature ()
+vdi3 :: Factor Feature ()
 vdi3 = impact vd3
 
 
@@ -151,10 +149,10 @@ expl = explain cars
 honda = head (mds vd)
 bmw = barrier vd
 
-hondaF = factor honda :: Focus Feature Opinion
-hondaO = factor honda :: Focus Opinion Feature
-bmwF = factor honda :: Focus Feature Opinion
-bmwO = factor honda :: Focus Opinion Feature
+hondaF = factor honda :: Factor Feature Opinion
+hondaO = factor honda :: Factor Opinion Feature
+bmwF = factor honda :: Factor Feature Opinion
+bmwO = factor honda :: Factor Opinion Feature
 
 
 vdO = focus vd :: Rec Opinion

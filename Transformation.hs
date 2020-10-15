@@ -11,7 +11,7 @@ import Data.Maybe
 import Record
 import Info
 import Valuation
-import Focus
+import Factor
 import Dimension
 import MDS hiding (compare)
 
@@ -78,24 +78,24 @@ projInfo = mapInfo projectRec
 -- ================== FACTORIZING EXPLANATIONS ===============================
 -- ===========================================================================
 
--- factor :: (Ord d,Ord a,Ord d',Covers d a,Shrink d d') => Rec d -> Focus a d'
-factor :: (Ord d,Ord a,Ord d',Split d a d') => Rec d -> Focus a d'
-factor xs = formatFocus . Focus $ zipMap mkFact (unRec . projectRec $ xs)
+-- factor :: (Ord d,Ord a,Ord d',Covers d a,Shrink d d') => Rec d -> Factor a d'
+factor :: (Ord d,Ord a,Ord d',Split d a d') => Rec d -> Factor a d'
+factor xs = formatFactor . Factor $ zipMap mkFact (unRec . projectRec $ xs)
                                                    (groupRecBy project xs)
     where mkFact = \_ x y -> (x,shrinkRec y)
 
-impact :: Ord a => Rec a -> Focus a ()
+impact :: Ord a => Rec a -> Factor a ()
 impact r = factor (mkOneTupleRec r)
 
 -- ========== VALUE DIFFERENCE IMPACTS (VDI) =================================
 -- ===========================================================================
 
-vdi :: Ord a => a -> a -> Focus a b -> Focus a b -> (Percent,Percent)
+vdi :: Ord a => a -> a -> Factor a b -> Factor a b -> (Percent,Percent)
 vdi a b f1 f2 = (compImpact a b f1,compImpact a b f2)
   where
     -- compare impacts
-    compImpact :: Ord a => a -> a -> Focus a b -> Percent
-    compImpact x y f = (lookUpFocus x f/lookUpFocus y f)*100
+    compImpact :: Ord a => a -> a -> Factor a b -> Percent
+    compImpact x y f = (lookUpFactor x f/lookUpFactor y f)*100
 
 pvdi :: (Percent,Percent) -> IO ()
 pvdi (x,y) = do
