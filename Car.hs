@@ -15,6 +15,7 @@ import Transformation
 -- Car Example
 --
 data Car     = Honda | BMW | Toyota deriving (Eq,Ord,Show,Enum,Bounded,Set)
+
 data Feature = Price | MPG | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Opinion = Personal | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Weight  = Weighted deriving (Eq,Ord,Show,Enum,Bounded,Set)
@@ -133,7 +134,6 @@ an1 = generalize vdCars
 an2 :: Analysis Feature
 an2 = generalize vdCars
 -}
-
 
 vd :: Rec (Feature,Opinion)
 vd = diff (shrinkVal cars) Honda BMW

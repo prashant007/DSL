@@ -6,6 +6,7 @@ import Info
 import Focus 
 import Valuation
 import MDS
+import Dimension
 import Transformation
 
 import qualified Data.Map as M
@@ -28,6 +29,7 @@ instance Valence Population
 policy :: Info Candidate Policy 
 policy = info [Clinton --> [Environment --> 180,Economic --> 55, Foreign --> 35, Health --> 195],
                Trump   --> [Environment --> 45, Economic --> 220,Foreign --> 140,Health --> 130]]
+
 
 
 -- - Every demography expressed what policies are important to them.
@@ -54,51 +56,57 @@ population = addAttribute Population [Rural --> 500,Urban --> 500] objects
 candidates :: Val Candidate (Policy,Demography,Geography,Population)
 candidates = val policy `extendBy` demography `extendBy` geography `extendBy` population
 
-type CandidateDecomp = Rec (Policy,Demography,Geography,Population)
-
-trump :: CandidateDecomp
-trump = select Trump candidates
-
-clinton :: CandidateDecomp
-clinton = select Clinton candidates
-
--- candPriority :: Priority Candidate 
--- candPriority = priority candidates
-
-expCandidate :: Explain (Policy,Demography,Geography)
-expCandidate = explain vdCandidate
-
-c11 = factorize trump :: Focus Population (Policy,Demography,Geography)
-c12 = factorize clinton :: Focus Population (Policy,Demography,Geography)
-
-vdCandidate :: Rec (Policy,Demography,Geography)
-vdCandidate = reduce $ candidates!Trump - candidates!Clinton
-
-expDemography :: Explain Demography 
-expDemography = generalize vdCandidate 
-
-expGeography :: Explain Geography
-expGeography = generalize vdCandidate 
-
-expPolicy :: Explain Policy
-expPolicy = generalize vdCandidate 
+candidates' :: Val Candidate (Policy,Demography,Geography)
+candidates' = shrinkVal candidates
 
 
-(_,support,barrier,mdss,_) = expCandidate
+vdE :: Rec (Policy,Demography,Geography)
+vdE = diff (shrinkVal candidates) Trump Clinton
 
-mdsC = head mdss :: Rec (Policy,Demography,Geography)
+
+-- type CandidateDecomp = Rec (Policy,Demography,Geography,Population)
+
+-- trump :: CandidateDecomp
+-- trump = select Trump candidates
+
+-- clinton :: CandidateDecomp
+-- clinton = select Clinton candidates
 
 
-fact1 = factorize mdsC :: Focus Policy (Demography,Geography)
-fact2 = factorize mdsC :: Focus Demography (Policy,Geography)
-fact3 = factorize mdsC :: Focus Geography (Policy,Demography)
+-- expCandidate :: Explanation Candidate (Policy,Demography,Geography)
+-- expCandidate = explain vdCandidate
 
-geographyTrump = factorize support :: Focus Geography (Policy,Demography)
-geographyClinton = factorize barrier :: Focus Geography (Policy,Demography)
+-- c11 = factorize trump :: Focus Population (Policy,Demography,Geography)
+-- c12 = factorize clinton :: Focus Population (Policy,Demography,Geography)
 
-demographyTrump = factorize support :: Focus Demography (Policy,Geography)
-demographyClinton = factorize barrier :: Focus Demography (Policy,Geography)
+-- vdCandidate :: Rec (Policy,Demography,Geography)
+-- vdCandidate = shrink $ candidates!Trump - candidates!Clinton
 
-policyTrump = factorize support :: Focus Policy (Demography,Geography)
-policyClinton = factorize barrier :: Focus Policy (Demography,Geography)
+-- expDemography :: Explanation Demography 
+-- expDemography = generalize vdCandidate 
+
+-- expGeography :: Explanation Geography
+-- expGeography = generalize vdCandidate 
+
+-- expPolicy :: Explanation Policy
+-- expPolicy = generalize vdCandidate 
+
+
+-- (_,support,barrier,mdss,_) = expCandidate
+
+-- mdsC = head mdss :: Rec (Policy,Demography,Geography)
+
+
+-- fact1 = factorize mdsC :: Focus Policy (Demography,Geography)
+-- fact2 = factorize mdsC :: Focus Demography (Policy,Geography)
+-- fact3 = factorize mdsC :: Focus Geography (Policy,Demography)
+
+-- geographyTrump = factorize support :: Focus Geography (Policy,Demography)
+-- geographyClinton = factorize barrier :: Focus Geography (Policy,Demography)
+
+-- demographyTrump = factorize support :: Focus Demography (Policy,Geography)
+-- demographyClinton = factorize barrier :: Focus Demography (Policy,Geography)
+
+-- policyTrump = factorize support :: Focus Policy (Demography,Geography)
+-- policyClinton = factorize barrier :: Focus Policy (Demography,Geography)
 

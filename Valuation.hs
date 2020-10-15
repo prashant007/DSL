@@ -40,7 +40,7 @@ instance Aggregate (Info o a) (Rec o) where
 --
 type Val o a = Info o a
 
-maxVal = 100
+maxVal = 1
 
 valuation :: (Ord o,Set a,Valence a) => Info o a -> Val o a
 valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members
@@ -49,7 +49,7 @@ valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members
     attrNormRecPair :: (Ord o,Valence a) => Info o a -> a -> (a,Rec o)
     attrNormRecPair l x = (x,mkRec $ normNums x l)
 
-    -- normalize Nums obtained from an anttribute
+    -- normalize Nums obtained from an attribute
     normNums :: (Ord o,Valence a) => a -> Info o a -> Nums o
     normNums x = normalize x . toNums x
 
@@ -71,7 +71,6 @@ extendBy as bs = listToInfo
                     (o,a) <- fromInfo as,             (aa,av) <- fromRec a,
                     (b,c) <- (fromInfo.valuation) bs, (cc,cv) <- fromRec c,
                     project aa == b]
-
 
 
 -- Many a times the record value may have an argument that stays the same in all

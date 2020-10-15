@@ -24,7 +24,7 @@ import MDS hiding (compare)
 -- features of the car like fuel and safety ratings as well as the people
 -- advising the buyer namely the friends, and experts. These two levels are
 -- independent of each other in the mind of an explanation consumer. The
--- Generalize type class realizes this need by providing an explanation in
+-- generalize function provides an explanation in
 -- terms of one level at a time.
 
 -- generalize :: (Ord b,Split a b c) => ValDiff a -> Explain b
