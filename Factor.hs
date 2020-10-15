@@ -67,3 +67,5 @@ formatFactor x = mapFactor percentFactor x
     sumF = foldFactor (\b (n,_) -> b + abs n) 0 x
     percentFactor :: Ord a => ((Double,Rec a) -> (Percent,Rec a))
     percentFactor (x,y) = (mkPercent sumF x,percentRec y)
+
+

@@ -1,3 +1,5 @@
+{-# LANGUAGE  MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances #-}
+
 module Transformation where
 
 import Data.Function
@@ -64,16 +66,26 @@ projectRec x = M.foldrWithKey iterRec emptyRec (groupRecBy project x)
     iterRec :: Ord b => b -> Rec a -> Rec b -> Rec b
     iterRec b m = insertRec b (sumRec m)
 
-focus :: (Covers a b,Ord a,Ord b) => Rec a -> Rec b
-focus = projectRec
+-- focus :: (Covers a b,Ord a,Ord b) => Rec a -> Rec b
+-- focus = projectRec
+--   where (win,rup)   = (winner v, runnerUp v)
+
 
 projInfo :: (Covers a b,Ord a,Ord b) => Info o a -> Info o b
 projInfo = mapInfo projectRec
 
--- ===================== REDUCE =============================================
+
+-- ===================== FOCUS =============================================
 -- ==========================================================================
 
+class Focus a b where
+    focus :: a -> b 
 
+instance (Covers a b,Ord a,Ord b) => Focus (Rec a) (Rec b) where
+    focus = projectRec 
+
+instance (Covers a b,Ord a,Ord b) => Focus (Val o a) (Val o b) where
+    focus = mapInfo focus 
 
 -- ================== FACTORIZING EXPLANATIONS ===============================
 -- ===========================================================================
