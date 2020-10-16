@@ -33,6 +33,8 @@ instance Valence Weight
 carFeatures :: Info Car Feature
 carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
                     BMW   --> [Price --> 36000, MPG --> 32, Safety --> 9.1]]
+                  -- use this to show case of empty barrier:
+                  -- BMW   --> [Price --> 36000, MPG --> 29, Safety --> 9.1]]
 
 
 -- (2) Creating a valuation from data (only for opinions)
@@ -158,9 +160,9 @@ bmwO = factor honda :: Factor Opinion Feature
 vdO = focus vd :: Rec Opinion
 vdF = focus vd :: Rec Feature
 
-carsO = projInfo cars :: Val Car Opinion
--- explO = explain' carsO :: Explanation Car Opinion
-explO = explain $ projInfo cars :: Explanation Car Opinion
+carsO = focus cars :: Val Car Opinion
+explO = explain $ focus cars :: Explanation Car Opinion
+explF = explain $ focus cars :: Explanation Car Feature
 
 an1 :: Analysis Opinion
 an1@(_,barO,_,mdsO:_) = generalize vd
