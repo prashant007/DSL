@@ -1,4 +1,6 @@
 {-# LANGUAGE  MultiParamTypeClasses, FunctionalDependencies #-}
+{-# LANGUAGE FlexibleContexts,ScopedTypeVariables,UndecidableInstances,ConstraintKinds,FlexibleInstances #-}
+
 module Valuation where
 
 import qualified Data.Map.Strict as M
@@ -40,7 +42,7 @@ instance Aggregate (Info o a) (Rec o) where
 --
 type Val o a = Info o a
 
-maxVal = 100
+maxVal = 1
 
 valuation :: (Ord o,Set a,Valence a) => Info o a -> Val o a
 valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members
@@ -88,3 +90,7 @@ winner = fst . maxEntry . total
 
 runnerUp :: Ord o => Val o a -> o
 runnerUp = fst . sndMaxEntry . total
+
+
+
+

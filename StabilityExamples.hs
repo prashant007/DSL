@@ -1,15 +1,21 @@
-{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,KindSignatures,GADTs,DataKinds,TypeFamilies #-}
-{-# LANGUAGE DeriveAnyClass,FlexibleContexts,ScopedTypeVariables,UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE FlexibleContexts #-}
+
+
+
 
 import Record
 import Info
 import Valuation
 import Data.Tuple.OneTuple (OneTuple(..))
 import MDS
-import Focus
+import Factor
 import Transformation
 import Stability
-
+import Sens 
+import StabilityHelper 
 
 
 data Car     = Honda | BMW  deriving (Eq,Ord,Show,Enum,Bounded,Set)
@@ -26,26 +32,19 @@ instance Valence Opinion
 instance Valence Weight
 
 
--- (1) Mapping carFeatures to opinions
---
 carFeatures :: Info Car Feature
-carFeatures = info [Honda --> [Price --> (34000 + 1179), MPG --> 30, Safety --> 9.8],
+carFeatures = info [Honda --> [Price --> (34000 ), MPG --> 30, Safety --> 9.8],
                     BMW   --> [Price --> 36000, MPG --> 32, Safety --> 9.1]]
 
 
--- (2) Creating a valuation from data (only for opinions)
---
 vCarF :: Val Car Feature
 vCarF = valuation carFeatures
 
 
--- (5) Adding dimensions and extending valuation
---
 featureOpinions :: Info Feature Opinion
 featureOpinions = info [Price  --> [Personal --> 5, Expert --> 3],
                         MPG    --> [Personal --> 3, Expert --> 5],
                         Safety --> [Personal --> 2, Expert --> 2]]
-
 
 featureVal :: Val Car (OneTuple Feature)
 featureVal = mkOneTuple vCarF
@@ -53,19 +52,6 @@ featureVal = mkOneTuple vCarF
 carOpinions :: Val Car (Feature,Opinion)
 carOpinions = featureVal `extendBy` featureOpinions
 
-
-{-
-*Car> total carOpinions
-{Honda -> 99.98, BMW -> 100.02}
-*Car> total $ only Personal carOpinions
-{Honda -> 50.37, BMW -> 49.63}
-*Car> total $ only Expert carOpinions
-{Honda -> 49.61, BMW -> 50.39}
--}
-
-
--- (6) Top-level: Weighting opinions
---
 weight :: a -> [(Weight,a)]
 weight x = [Weighted --> x]
 
@@ -76,58 +62,16 @@ cars :: Val Car (Feature,Opinion,Weight)
 cars = carOpinions `extendBy` info [Personal --> weight (0.6),Expert --> weight 0.4]
 
 carTuple = (carFeatures,featureOpinions,weights)
-c11 = sens carTuple (Honda,BMW) :: Sens 1 Car (Car,Feature) 
-c12 = sens carTuple (BMW,Honda) :: Sens 1 Car (Car,Feature) 
-c2  = sens carTuple (Honda,BMW) :: Sens 2 Car (Feature,Opinion)
-c3  = sens carTuple (Honda,BMW) :: Sens 3 Car (Opinion,Weight) 
+c11 = sens carTuple (Honda,BMW) :: Sens Car (Car,Feature) 
+c12 = sens carTuple (BMW,Honda) :: Sens Car (Car,Feature) 
+c2  = sens carTuple (Honda,BMW) :: Sens Car (Feature,Opinion)
+c3  = sens carTuple (Honda,BMW) :: Sens Car (Opinion,Weight) 
 
 t = total $ cars 
 
 
 
--- fv = valuation featureOpinions
--- wv = valuation weights
-
--- sensc3 = sens (vCarF1',fv,wv) (Honda,BMW) :: Sens 3 3 Car Opinion 
--- sensc2 = sens (vCarF1',fv,wv) (Honda,BMW) :: Sens 3 2 Car (Feature,Opinion)
--- sensc1 = sens (vCarF1',fv,wv) (Honda,BMW) :: Sens 3 1 Car Feature
--- -- total3 = total $ mkOneTuple vCarF `extendBy` fv `extendBy` wv
-
--- policyV :: Val Candidate Policy 
--- policyV = info [Trump   --> [Environment --> 0.2,Economic --> 0.8,Foreign --> 0.8,Health --> 0.4],
---                 Clinton --> [Environment --> 0.8,Economic --> 0.2,Foreign --> 0.2,Health --> 0.6]
---                 ]
-
--- demographyV :: Val Policy Demography
--- demographyV = info [Environment --> [Young --> 0.33,MiddleAged --> 0.21,Old --> 0.14],
---                     Economic    --> [Young --> 0.17,MiddleAged --> 0.37,Old --> 0.29],
---                     Foreign     --> [Young --> 0.17,MiddleAged --> 0.21,Old --> 0.14],
---                     Health      --> [Young --> 0.33,MiddleAged --> 0.21,Old --> 0.43]]
-
-
--- geographyV :: Val Demography Geography
--- geographyV = info [Young --> [Rural --> (0.2 - 0.0000),Urban --> 0.4],
---                    MiddleAged --> [Rural --> 0.3,Urban --> 0.4],
---                    Old --> [Rural --> 0.5,Urban --> 0.2]]
-
--- populationV :: Val Geography Population
--- populationV = addAttribute Population [Rural --> 0.5,Urban --> 0.5] objects
-
--- sensE1 = sens electTuple (Trump,Clinton) :: Sens 4 1 Candidate Policy 
--- sensE2 = sens electTuple (Trump,Clinton) :: Sens 4 2 Candidate (Policy,Demography)
--- sensE3 = sens electTuple (Trump,Clinton) :: Sens 4 3 Candidate (Demography,Geography)
--- sensE4 = sens electTuple (Trump,Clinton) :: Sens 4 4 Candidate Geography 
-
-
--- electTuple = (policyV,demographyV,geographyV,populationV)
--- totE = total $ mkOneTuple (valuation policyV) `extendBy` demographyV `extendBy` geographyV `extendBy` populationV
-
-
-
--- sensEx1 = pSensE $ allSens 1 (firstLevel,secondLevel)    
--- sensEx2 = pSensE $ allSens 2 (firstLevel,secondLevel)
---ptable = total $ mkOneTuple (valuation firstLevel) `extendBy` secondLevel
-
+-- ================== Examples from Evangelos's Book ====================== 
 
 data Alt = A1 | A2 | A3 | A4 deriving (Eq,Ord,Show,Enum,Bounded,Set)
 
@@ -174,3 +118,23 @@ secondLevel = info [C1 --> [W --> 0.3277],C2 --> [W --> 0.3058],
 -- secondLevel :: Val C W 
 -- secondLevel = info [C1 --> [W --> 0.4146],C2 --> [W --> 0.0129],C3 --> [W --> 0.2958],
 --                     C4 --> [W --> 0.0604],C5 --> [W --> 0.2164]]
+
+
+
+type Level = Int 
+
+allSens1 :: Sval o (Info2 o a b) o a => Info2 o a b -> [Sens o (o,a)]
+allSens1 v =  map (\x -> (sens' v x)) (genPairs (/=))
+    -- | otherwise = Right $ map (\x -> (sens v x)::Sens o (a,b)) (genPairs (<))
+
+
+allSens2 :: (Ord o,Set o,Sval o (Info2 o a b) a b) => Info2 o a b -> [Sens o (a,b)]
+allSens2 v =  map (\x -> (sens' v x)) (genPairs (<))
+
+genPairs :: Set o => (o -> o -> Bool) ->  [(o,o)]
+genPairs f = [(x,y) | x <- members, y <- members, f x y]
+        
+pSens :: (Show o,Show a) => [Sens o a]-> IO ()
+pSens = mapM_ (\x -> putStrLn $ show x ++ "\n") 
+
+

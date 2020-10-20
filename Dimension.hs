@@ -2,6 +2,8 @@
 
 module Dimension where
 
+import Info 
+
 import Data.Tuple.OneTuple (only,OneTuple(..))
 
 class Covers t a | t -> a where
@@ -17,6 +19,7 @@ instance Covers (a,b,c,d) a    where project (a,b,c,d) = a
 instance Covers (a,b,c,d) b    where project (a,b,c,d) = b
 instance Covers (a,b,c,d) c    where project (a,b,c,d) = c
 instance Covers (a,b,c,d) d    where project (a,b,c,d) = d
+
 
 
 class Shrink t t' | t -> t' where
@@ -55,3 +58,4 @@ instance Expand (OneTuple a) b (a,b)    where expand a b = (only a,b)
 instance Expand (a,b)     c (a,b,c)     where expand (a,b) c = (a,b,c)
 instance Expand (a,b,c)   d (a,b,c,d)   where expand (a,b,c) d = (a,b,c,d)
 instance Expand (a,b,c,d) e (a,b,c,d,e) where expand (a,b,c,d) e = (a,b,c,d,e)
+

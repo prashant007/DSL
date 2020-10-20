@@ -67,6 +67,9 @@ projectRec x = M.foldrWithKey iterRec emptyRec (groupRecBy project x)
     iterRec b m = insertRec b (sumRec m)
 
 
+projectInfo :: (Ord a, Ord b, Covers a b) => Info o a -> Info o b 
+projectInfo = mapInfo projectRec
+
 -- ===================== FOCUS =============================================
 -- ==========================================================================
 
@@ -105,3 +108,5 @@ pvdi :: (Percent,Percent) -> IO ()
 pvdi (x,y) = do
   let showP a = printf "%.0f" a ++ "%"
   putStrLn $ "(" ++ showP x ++ ", " ++ showP y ++ ")"
+
+
