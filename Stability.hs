@@ -18,6 +18,8 @@ import Sens
 import StabilityHelper
 
 
+-- Helper functions are in StabilityHelper
+
 class (Ord b,Set b, Set c,Covers a (Info b c),Valence c,Valtuple a) => Sval o a b c | a -> b c where
     sens' :: a -> (o,o) -> Sens o (b,c) 
 
@@ -43,7 +45,6 @@ instance (Ord o,Set o,SetVal2 a b) => Sval o (Info2 o a b) a b where
 instance (Set o,Ord2 o b,AHP3 a b c) => Sval o (Info3 o a b c) o a where
     sens' (v1,v2,v3) = let v'= mkOneTuple v2 `extendBy` v3 :: Val a (b,c)
                        in sens' (v1,projectInfo v') 
-
 
 
 -- Sensitivity analysis of Level 2 of a 3 level AHP 

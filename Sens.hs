@@ -13,7 +13,6 @@ import Transformation
 import Dimension
 
 type Pair o = (o,o)
-
 data Sens o a = Sens {unpair :: Pair o, unsens :: M.Map a (Maybe Double)}
 
 mkSens :: Ord a => Pair o -> [(a,Maybe Double)] -> Sens o a 

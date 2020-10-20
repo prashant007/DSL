@@ -32,48 +32,22 @@ type Val3  o a b c = (Val o a,Val a b,Val b c)
 type Info4 o a b c d = (Info o a,Info a b,Info b c,Info c d)
 type Val4  o a b c d = (Val o a,Val a b,Val b c,Val c d)
 
-
-
-
 -- Some commonly used constraint synonyms 
 type Set2 a b = (Set a, Set b)
 type Set3 a b c = (Set a,Set b,Set c)
 type Set4 a b c d = (Set a,Set b,Set c,Set d)
 
-
--- class (Set a, Set b) => Set2 a b where {} 
--- class (Set a, Set b,Set c) => Set3 a b c where {} 
--- class (Set a, Set b,Set c,Set d) => Set4 a b c d where {} 
-
-
 type Valence2 a b = (Valence a,Valence b)
 type Valence3 a b c = (Valence a,Valence b,Valence c)
 type Valence4 a b c d = (Valence a,Valence b,Valence c,Valence d)
-
-
--- class (Valence a,Valence b) => Valence2 a b where {}
--- class (Valence a,Valence b,Valence c) => Valence3 a b c where {}
--- class (Valence a,Valence b,Valence c,Valence d) => Valence4 a b c d where {}
-
 
 type SetVal a = (Set a,Valence a)
 type SetVal2 a b = (Set2 a b,Valence2 a b)
 type SetVal3 a b c = (Set3 a b c,Valence3 a b c)
 type SetVal4 a b c d = (Set4 a b c d,Valence4 a b c d)
 
-
--- class (Set a,Valence a) => SetVal a where {}
--- class (SetVal a,SetVal b) => SetVal2 a b where {}
--- class (SetVal a,SetVal b,SetVal c) => SetVal3 a b c where {}
--- class (SetVal a,SetVal b,SetVal c,SetVal d) => SetVal4 a b c d where {}
-
-
 type Ord2 a b = (Ord a,Ord b)
 type AHP3 a b c = (SetVal3 a b c,Covers (b,c) c)
-
-
--- class (Ord a,Ord b) => Ord2 a b where {}
--- class (SetVal3 a b c,Covers (b,c) c) => AHP3 a b c where {}
 
 -- valuation of multiple Info in a tuple.
 -- this is needed in sensitivity analysis
