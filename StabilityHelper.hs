@@ -19,6 +19,7 @@ import MDS
 import Transformation
 import Dimension
 
+-- mode true is percentage representation 
 mode :: Bool 
 mode = False   
 
@@ -95,45 +96,64 @@ dotprod o b (v1,v2) = rowVals o v1 `dot` colVals b v2
 
 -- denormalization is the opposite of normalization, that is going
 -- from normalized to the original values 
-denormalize :: (Set a, Set b,Valence b) => Info a b -> ((a,b),Maybe Double) -> ((a,b),Maybe Double)
-denormalize i p@(_,Nothing) = p 
-denormalize i (ab@(a,b),Just n)
-    | valence b = (ab,Just $ n * sum avals)
-    | otherwise = (ab,Just $ xn - ((1-theta)/(theta * rsum)))  
+denormalize :: (Set a, Set b,Valence b) => Info a b -> b -> (a,Maybe Double) -> (a,Maybe Double)
+denormalize i _ p@(a,Nothing) = p 
+denormalize i b (a,Just n)
+    | valence b = (a,Just $ n * sum avals)
+    | otherwise = (a,Just $ xn - ((1-theta)/(theta * rsum)))  
     where
         avals = colVals b i 
-        theta = (lookupInfo ab (valuation i)-n)/(1-n)
+        theta = (lookupInfo (a,b) (valuation i)-n)/(1-n)
         -- sum of reciprocals 
         sumreci= sum.map (\x -> 1/x)   
         rsum = sumreci $ map (\m -> lookupInfo (m,b) i) (members L.\\ [a])
         xn = lookupInfo (a,b) i 
 
+-- denormalize :: (Set a, Set b,Valence b) => Info a b -> b -> (a,Maybe Double) -> (a,Maybe Double)
+-- denormalize _ _ x = x 
+
 -- ================================================================================
 -- ================= HELPER FUNCTIONS COMPUTING CHANGE IN VALUES ==================
 
+change21 :: (Ord o ,Set o,SetVal2 a b) => Val2 o a b -> (o,o) -> a -> o -> (o,Maybe Double)
+change21 v (o1,o2) k o' 
+    | o2 == o' = change21' v (o2,o1) o' k 
+    | otherwise= change21' v (o1,o2) o' k 
+
+
 -- calculating the change required for the first level in the two level AHP
-change21 :: (Ord o ,Set o,SetVal2 a b) => Val2 o a b -> (o,o) -> a -> ((o,a),Maybe Double)
-change21 (v1,v2) o@(o1,o2) k  
-    | deltaValP <= 100 = if mode then (p,Just deltaValP) else (p,Just deltaVal)  
-    | otherwise = (p,Nothing)    
+change21' :: (Ord o ,Set o,SetVal2 a b) => Val2 o a b -> (o,o) -> o -> a -> (o,Maybe Double)
+change21' (v1,v2) o o' k 
+    | cond1 && condf deltaValP = retValue deltaValP deltaVal  
+    | cond2 && condf deltaValP'= retValue deltaValP' deltaVal'  
+    | otherwise = (o',Nothing)    
     where
-        p = (o1,k)
+        --o = if snd op == o' then (snd op,fst op) else o 
         prioritydiff = pdiff o $ mkOneTuple v1 `extendBy` v2 
         weight_k  = lookupInfo (k,head members) v2
-        value_ik  = lookupInfo (o1,k) v1
+        value_ik  = lookupInfo (o',k) v1
         valDiff_k = cvdiff o v1 k 
+
+        percentk x= percent value_ik x 
+        retValue p x = if mode then (o',Just p) else (o',Just x)
         
         deltaVal  = (prioritydiff/(prioritydiff + weight_k*(1-valDiff_k)))  
-        deltaValP = percent value_ik deltaVal
+        deltaValP = percentk deltaVal
+        
+        deltaVal' = prioritydiff/(prioritydiff - weight_k * valDiff_k)
+        deltaValP'= percentk deltaVal'    
+
+        cond1 = elem o' [fst o,snd o]
+        cond2 = not cond1 
+        condf x = x <= 100 
 
 
--- calculating the change required for the second level in the two level AHP
-change22 :: (Ord o,SetVal2 a b) => Val2 o a b -> (o,o) -> a -> ((a,b),Maybe Double)
-change22 (v1,v2) o@(o1,o2) k  
-    | deltaWgtP <= 100 = if mode then (p,Just deltaWgtP) else (p,Just deltaWgt)  
-    | otherwise = (p,Nothing)    
+--calculating the change required for the second level in the two level AHP
+change22 :: (Ord o,SetVal2 a b) => Val2 o a b -> (o,o) -> a -> (a,Maybe Double)
+change22 (v1,v2) o k
+    | deltaWgtP <= 100 = if mode then (k,Just deltaWgtP) else (k,Just deltaWgt)  
+    | otherwise = (k,Nothing)    
     where
-        p = (k,head members)
         prioritydiff = pdiff o $ mkOneTuple v1 `extendBy` v2 
         weight_k  = lookupInfo (k,head members) v2
         valDiff_k = cvdiff o v1 k 
@@ -143,10 +163,10 @@ change22 (v1,v2) o@(o1,o2) k
 
 
 -- calculating the change required for the second level in the three level AHP
-change32 :: forall o a b c. (Ord o,AHP3 c a b) => Val3 o a b c -> (o,o) -> (a,b) -> ((a,b),Maybe Double)
-change32 (v1,v2,v3) o@(o1,o2) ab@(a,b)  
-    | cond1     = if mode then (ab,Just delta) else (ab,Just delta')
-    | otherwise = (ab,Nothing)
+change32 :: forall o a b c. (Ord o,AHP3 c a b) => Val3 o a b c -> (o,o) -> (a,b) -> (a,Maybe Double)
+change32 (v1,v2,v3) o@(o1,o2) ab@(a,b) 
+    | cond1     = if mode then (a,Just delta) else (a,Just delta')
+    | otherwise = (a,Nothing)
     where 
         v12 = (mkOneTuple v1 `extendBy` v2) :: Val o (a,b)
         prioritydiff = pdiff o ((v12 `extendBy` v3) :: Val o (a,b,c)) 
@@ -160,4 +180,4 @@ change32 (v1,v2,v3) o@(o1,o2) ab@(a,b)
         delta = delta' * 100/valuebik   
         
         cond1 = delta' <= valuebik
-        --cond1 = bik-1 <= delta' && delta' <= bik 
+        --cond1 = valuebik-1 <= delta' && delta' <= valuebik 

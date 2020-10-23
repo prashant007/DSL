@@ -5,7 +5,6 @@
 
 
 
-
 import Record
 import Info
 import Valuation
@@ -18,7 +17,7 @@ import Sens
 import StabilityHelper 
 
 
-data Car     = Honda | BMW  deriving (Eq,Ord,Show,Enum,Bounded,Set)
+data Car     = Honda | BMW | Toyota  deriving (Eq,Ord,Show,Enum,Bounded,Set)
 
 data Feature = Price | MPG | Safety deriving (Eq,Ord,Show,Enum,Bounded,Set)
 data Opinion = Personal | Expert deriving (Eq,Ord,Show,Enum,Bounded,Set)
@@ -31,10 +30,11 @@ instance Valence Feature where
 instance Valence Opinion
 instance Valence Weight
 
-
+-- change back valence 
 carFeatures :: Info Car Feature
-carFeatures = info [Honda --> [Price --> (34000 ), MPG --> 30, Safety --> 9.8],
-                    BMW   --> [Price --> 36000, MPG --> 32, Safety --> 9.1]]
+carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
+                    BMW   --> [Price --> 36000, MPG --> 32, Safety --> 9.1],
+                    Toyota--> [Price --> 26000, MPG --> 28, Safety --> 8.1]]
 
 
 vCarF :: Val Car Feature
@@ -52,20 +52,38 @@ featureVal = mkOneTuple vCarF
 carOpinions :: Val Car (Feature,Opinion)
 carOpinions = featureVal `extendBy` featureOpinions
 
+opinionWeight :: Val Feature (Opinion,Weight)
+opinionWeight = mkOneTuple (valuation featureOpinions) `extendBy` weights
+
 weight :: a -> [(Weight,a)]
 weight x = [Weighted --> x]
 
 weights :: Info Opinion Weight
-weights = info [Personal --> weight 0.6,Expert --> weight 0.4]
+weights = info [Personal --> weight 0.6,Expert --> weight (0.4)]
 
 cars :: Val Car (Feature,Opinion,Weight)
-cars = carOpinions `extendBy` info [Personal --> weight (0.6),Expert --> weight 0.4]
+cars = carOpinions `extendBy` weights
+
+ --info [Personal --> weight (0.6),Expert --> weight 0.4]
 
 carTuple = (carFeatures,featureOpinions,weights)
-c11 = sens carTuple (Honda,BMW) :: Sens Car (Car,Feature) 
-c12 = sens carTuple (BMW,Honda) :: Sens Car (Car,Feature) 
-c2  = sens carTuple (Honda,BMW) :: Sens Car (Feature,Opinion)
-c3  = sens carTuple (Honda,BMW) :: Sens Car (Opinion,Weight) 
+c11HB = sens carTuple (Honda,BMW) Price :: Sens Car 
+c12HB = sens carTuple (Honda,BMW) MPG   :: Sens Car
+c13HB = sens carTuple (Honda,BMW) Safety:: Sens Car
+
+c11TH = sens carTuple (Toyota,Honda) Price :: Sens Car 
+c12TH = sens carTuple (Toyota,Honda) MPG   :: Sens Car
+c13TH = sens carTuple (Toyota,Honda) Safety:: Sens Car
+
+c21HB  = sens carTuple (Honda,BMW) Personal :: Sens Feature
+c22HB  = sens carTuple (Honda,BMW) Expert :: Sens Feature
+c21TH  = sens carTuple (Toyota,Honda) Personal :: Sens Feature
+c22TH  = sens carTuple (Toyota,Honda) Expert :: Sens Feature
+
+c3   = sens carTuple (BMW,Honda) Weighted :: Sens Opinion
+-- c12 = sens carTuple (BMW,Honda) :: Sens Car (Car,Feature) 
+-- c2  = sens carTuple (Honda,BMW) :: Sens Car (Feature,Opinion)
+-- c3  = sens carTuple (Honda,BMW) :: Sens Car (Opinion,Weight) 
 
 t = total $ cars 
 
@@ -121,20 +139,20 @@ secondLevel = info [C1 --> [W --> 0.3277],C2 --> [W --> 0.3058],
 
 
 
-type Level = Int 
+-- type Level = Int 
 
-allSens1 :: Sval o (Info2 o a b) o a => Info2 o a b -> [Sens o (o,a)]
-allSens1 v =  map (\x -> (sens' v x)) (genPairs (/=))
-    -- | otherwise = Right $ map (\x -> (sens v x)::Sens o (a,b)) (genPairs (<))
+-- allSens1 :: Sval o (Info2 o a b) o a => Info2 o a b -> [Sens o (o,a)]
+-- allSens1 v =  map (\x -> (sens' v x)) (genPairs (/=))
+--     -- | otherwise = Right $ map (\x -> (sens v x)::Sens o (a,b)) (genPairs (<))
 
 
-allSens2 :: (Ord o,Set o,Sval o (Info2 o a b) a b) => Info2 o a b -> [Sens o (a,b)]
-allSens2 v =  map (\x -> (sens' v x)) (genPairs (<))
+-- allSens2 :: (Ord o,Set o,Sval o (Info2 o a b) a b) => Info2 o a b -> [Sens o (a,b)]
+-- allSens2 v =  map (\x -> (sens' v x)) (genPairs (<))
 
-genPairs :: Set o => (o -> o -> Bool) ->  [(o,o)]
-genPairs f = [(x,y) | x <- members, y <- members, f x y]
+-- genPairs :: Set o => (o -> o -> Bool) ->  [(o,o)]
+-- genPairs f = [(x,y) | x <- members, y <- members, f x y]
         
-pSens :: (Show o,Show a) => [Sens o a]-> IO ()
-pSens = mapM_ (\x -> putStrLn $ show x ++ "\n") 
+-- pSens :: (Show o,Show a) => [Sens o a]-> IO ()
+-- pSens = mapM_ (\x -> putStrLn $ show x ++ "\n") 
 
 
