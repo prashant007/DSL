@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 
@@ -18,6 +19,7 @@ import Valuation hiding (val)
 import MDS
 import Transformation
 import Dimension
+import Sens 
 
 -- mode true is percentage representation 
 mode :: Bool 
@@ -38,6 +40,8 @@ type Set2 a b = (Set a, Set b)
 type Set3 a b c = (Set a,Set b,Set c)
 type Set4 a b c d = (Set a,Set b,Set c,Set d)
 
+type Bound2 a b = (Bound a,Bound b)
+
 type Valence2 a b = (Valence a,Valence b)
 type Valence3 a b c = (Valence a,Valence b,Valence c)
 type Valence4 a b c d = (Valence a,Valence b,Valence c,Valence d)
@@ -50,19 +54,33 @@ type SetVal4 a b c d = (Set4 a b c d,Valence4 a b c d)
 type Ord2 a b = (Ord a,Ord b)
 type AHP3 a b c = (SetVal3 a b c,Covers (b,c) c)
 
--- valuation of multiple Info in a tuple.
--- this is needed in sensitivity analysis
+
 class Valtuple a where
     valtuple :: a -> a 
 
 instance (Ord o,SetVal2 a b) => Valtuple (Info2 o a b) where
     valtuple (x,y) = (valuation x,valuation y)
 
-instance (Ord o,SetVal3 a b c) => Valtuple (Info3 o a b c) where
+instance (Ord o,SetVal3 a b c) => Valtuple (Info3 o a b c)  where
     valtuple (x,y,z) = (valuation x,valuation y,valuation z)
 
 instance (Ord o,SetVal4 a b c d) => Valtuple (Info4 o a b c d) where
     valtuple (w,x,y,z) = (valuation w,valuation x,valuation y,valuation z)
+
+
+
+class FinVal a o b | a -> o b where
+    finval :: a -> Val o b 
+
+instance (Ord o,SetVal2 a b) => FinVal (Info2 o a b) o (a,b) where
+    finval (x,y) = (mkOneTuple (valuation x) `extendBy` y)
+
+instance (Ord o,SetVal3 a b c) => FinVal (Info3 o a b c) o (a,b,c) where
+    finval (x,y,z) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z)
+
+instance (Ord o,SetVal4 a b c d) => FinVal (Info4 o a b c d) o (a,b,c,d) where
+    finval (x,y,z,w) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z `extendBy` w)
+
 -- ================================================================================
 -- ================= HELPER FUNCTIONS FOR SENSITIVITY ANALYSIS ====================
 
@@ -94,23 +112,34 @@ dot xs = sum.zipWith (*) xs
 dotprod :: (Ord o,Set a,Ord b) => o -> b -> (Val o a,Val a b) -> Double
 dotprod o b (v1,v2) = rowVals o v1 `dot` colVals b v2
 
+
+checkBound :: Bound b => a -> b -> (Double,Double) -> (a,Maybe Double) 
+checkBound a b (cv,ov) = if (cond1 || cond2) && cond3 then (a,Just cv) else (a,Nothing)
+    where 
+        u = fromIntegral . upperBound $ b  
+        cond1 = cv >= 0 && cv < u 
+        cond2 = cv < 0 && abs cv < u 
+        cond3 = (ov - cv) > 0 && (ov - cv) <= u 
+
+
 -- denormalization is the opposite of normalization, that is going
 -- from normalized to the original values 
-denormalize :: (Set a, Set b,Valence b) => Info a b -> b -> (a,Maybe Double) -> (a,Maybe Double)
+denormalize :: (Set a, SetVal b,Bound b) => Info a b -> b -> (a,Maybe Double) -> (a,Maybe Double)
 denormalize i _ p@(a,Nothing) = p 
 denormalize i b (a,Just n)
-    | valence b = (a,Just $ n * sum avals)
-    | otherwise = (a,Just $ xn - ((1-theta)/(theta * rsum)))  
+    | valence b = checkBound a b (n * sum avals,xn) 
+    | otherwise = if rval' >= 1 then checkBound a b (rval,xn) else  (a,Nothing)
     where
         avals = colVals b i 
-        theta = (lookupInfo (a,b) (valuation i)-n)/(1-n)
+        
         -- sum of reciprocals 
         sumreci= sum.map (\x -> 1/x)   
         rsum = sumreci $ map (\m -> lookupInfo (m,b) i) (members L.\\ [a])
         xn = lookupInfo (a,b) i 
-
--- denormalize :: (Set a, Set b,Valence b) => Info a b -> b -> (a,Maybe Double) -> (a,Maybe Double)
--- denormalize _ _ x = x 
+        
+        rval' = ((1-theta)/(theta * rsum))
+        rval  = xn - rval' 
+        theta = (lookupInfo (a,b) (valuation i)-n)/(1-n)
 
 -- ================================================================================
 -- ================= HELPER FUNCTIONS COMPUTING CHANGE IN VALUES ==================
@@ -128,7 +157,6 @@ change21' (v1,v2) o o' k
     | cond2 && condf deltaValP'= retValue deltaValP' deltaVal'  
     | otherwise = (o',Nothing)    
     where
-        --o = if snd op == o' then (snd op,fst op) else o 
         prioritydiff = pdiff o $ mkOneTuple v1 `extendBy` v2 
         weight_k  = lookupInfo (k,head members) v2
         value_ik  = lookupInfo (o',k) v1
@@ -145,7 +173,7 @@ change21' (v1,v2) o o' k
 
         cond1 = elem o' [fst o,snd o]
         cond2 = not cond1 
-        condf x = x <= 100 
+        condf x =  x <= 100  
 
 
 --calculating the change required for the second level in the two level AHP
