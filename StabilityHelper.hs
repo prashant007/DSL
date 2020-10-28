@@ -68,7 +68,6 @@ instance (Ord o,SetVal4 a b c d) => Valtuple (Info4 o a b c d) where
     valtuple (w,x,y,z) = (valuation w,valuation x,valuation y,valuation z)
 
 
-
 class FinVal a o b | a -> o b where
     finval :: a -> Val o b 
 
@@ -112,7 +111,9 @@ dot xs = sum.zipWith (*) xs
 dotprod :: (Ord o,Set a,Ord b) => o -> b -> (Val o a,Val a b) -> Double
 dotprod o b (v1,v2) = rowVals o v1 `dot` colVals b v2
 
-
+-- some times the change suggested by sensitivity analysis may not be feasible.
+-- This function ensures that the changes suggested by sensitivity analysis
+-- is within the acceptable limits for an attribute. 
 checkBound :: Bound b => a -> b -> (Double,Double) -> (a,Maybe Double) 
 checkBound a b (cv,ov) = if (cond1 || cond2) && cond3 then (a,Just cv) else (a,Nothing)
     where 

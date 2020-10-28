@@ -15,6 +15,19 @@ class (Bounded a,Enum a,Ord a) => Set a where
   members :: [a]
   members = enumFromTo minBound maxBound
 
+class Unit a where
+    unit :: a 
+
+
+instance (Set a,Set b) => Unit (a,b) where
+    unit = (head members,head members)
+
+instance (Set a,Set b,Set c) => Unit (a,b,c) where
+    unit = (head members,head members,head members)
+
+
+instance (Set a,Set b,Set c,Set d) => Unit (a,b,c,d) where
+    unit = (head members,head members,head members,head members)
 
 -- Tagged numbers
 --

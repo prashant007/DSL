@@ -79,19 +79,19 @@ weights = info [Personal --> weight 60,Expert --> weight 40]
 cars :: Val Car (Feature,Opinion,Weight)
 cars = carOpinions `extendBy` weights
 
- --info [Personal --> weight (0.6),Expert --> weight 0.4]
-
 carData = (carFeatures,featureOpinions,weights)
 c11HB = sens carData (Honda,BMW) Price :: Sens Car 
 c12HB = sens carData (Honda,BMW) MPG   :: Sens Car
 c13HB = sens carData (Honda,BMW) Safety :: Sens Car
 
+c11THD= sensTopTwo carData cars Price :: Sens Car 
+c12THD= sensTopTwo carData cars MPG :: Sens Car 
+c13THD= sensTopTwo carData cars Safety :: Sens Car 
+
 c11TH = sens carData (Toyota,Honda) Price :: Sens Car 
-c11THD= sensdef carData Price cars :: Sens Car 
 c12TH = sens carData (Toyota,Honda) MPG   :: Sens Car
-c12THD= sensdef carData MPG cars :: Sens Car 
 c13TH = sens carData (Toyota,Honda) Safety:: Sens Car
-c13THD= sensdef carData Safety cars :: Sens Car 
+
 
 c21HB  = sens carData (Honda,BMW) Personal :: Sens Feature
 c22HB  = sens carData (Honda,BMW) Expert :: Sens Feature
@@ -99,11 +99,8 @@ c21TH  = sens carData (Toyota,Honda) Personal :: Sens Feature
 c22TH  = sens carData (Toyota,Honda) Expert :: Sens Feature
 
 
-c3TH   = sensdef carData Weighted cars :: Sens Opinion
+c3TH   = sensTopTwo carData cars Weighted :: Sens Opinion
 c3HB   = sens carData (Honda,BMW) Weighted :: Sens Opinion
--- c12 = sens carData (BMW,Honda) :: Sens Car (Car,Feature) 
--- c2  = sens carData (Honda,BMW) :: Sens Car (Feature,Opinion)
--- c3  = sens carData (Honda,BMW) :: Sens Car (Opinion,Weight) 
 
 t = total $ cars 
 
