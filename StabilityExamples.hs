@@ -84,9 +84,9 @@ c11HB = sens carData (Honda,BMW) Price :: Sens Car
 c12HB = sens carData (Honda,BMW) MPG   :: Sens Car
 c13HB = sens carData (Honda,BMW) Safety :: Sens Car
 
-c11THD= sensTopTwo carData cars Price :: Sens Car 
-c12THD= sensTopTwo carData cars MPG :: Sens Car 
-c13THD= sensTopTwo carData cars Safety :: Sens Car 
+c11THD= sensTopTwo carData Price :: Sens Car 
+-- c12THD= sensTopTwo carData cars MPG :: Sens Car 
+-- c13THD= sensTopTwo carData cars Safety :: Sens Car 
 
 c11TH = sens carData (Toyota,Honda) Price :: Sens Car 
 c12TH = sens carData (Toyota,Honda) MPG   :: Sens Car
@@ -99,7 +99,7 @@ c21TH  = sens carData (Toyota,Honda) Personal :: Sens Feature
 c22TH  = sens carData (Toyota,Honda) Expert :: Sens Feature
 
 
-c3TH   = sensTopTwo carData cars Weighted :: Sens Opinion
+--c3TH   = sensTopTwo carData cars Weighted :: Sens Opinion
 c3HB   = sens carData (Honda,BMW) Weighted :: Sens Opinion
 
 t = total $ cars 

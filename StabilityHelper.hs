@@ -68,17 +68,6 @@ instance (Ord o,SetVal4 a b c d) => Valtuple (Info4 o a b c d) where
     valtuple (w,x,y,z) = (valuation w,valuation x,valuation y,valuation z)
 
 
-class FinVal a o b | a -> o b where
-    finval :: a -> Val o b 
-
-instance (Ord o,SetVal2 a b) => FinVal (Info2 o a b) o (a,b) where
-    finval (x,y) = (mkOneTuple (valuation x) `extendBy` y)
-
-instance (Ord o,SetVal3 a b c) => FinVal (Info3 o a b c) o (a,b,c) where
-    finval (x,y,z) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z)
-
-instance (Ord o,SetVal4 a b c d) => FinVal (Info4 o a b c d) o (a,b,c,d) where
-    finval (x,y,z,w) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z `extendBy` w)
 
 -- ================================================================================
 -- ================= HELPER FUNCTIONS FOR SENSITIVITY ANALYSIS ====================

@@ -59,9 +59,29 @@ instance (Set o,Ord2 o b,AHP3 c a b) => Sval o (Val3 o a b c) b c where
 
 -- =======================================================================
 
+class FinVal a o b | a -> o b where
+    finval :: a -> Val o b 
+
+instance (Ord o,SetVal2 a b) => FinVal (Info2 o a b) o (a,b) where
+    finval (x,y) = (mkOneTuple (valuation x) `extendBy` y)
+
+instance (Ord o,SetVal3 a b c) => FinVal (Info3 o a b c) o (a,b,c) where
+    finval (x,y,z) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z)
+
+instance (Ord o,SetVal4 a b c d) => FinVal (Info4 o a b c d) o (a,b,c,d) where
+    finval (x,y,z,w) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z `extendBy` w)
+
+
+sensTopTwo' :: (Ord o,Sval o a b c, Bound c) => a -> Val o d -> c -> Sens b 
+sensTopTwo' a v = sens a (winner v,runnerUp v) 
+
+-- class (Ord o,Sval o a b c, FinVal a o d,Bound c) => SvalDefault o a b c d | a -> o b c d where
+--     sensTopTwo :: a -> Val o d -> c -> Sens b 
+--     sensTopTwo a _ = let v = finval a in sens a (winner v,runnerUp v) 
+
 class (Ord o,Sval o a b c, FinVal a o d,Bound c) => SvalDefault o a b c d | a -> o b c d where
-    sensTopTwo :: a -> Val o d -> c -> Sens b 
-    sensTopTwo a _ = let v = finval a in sens a (winner v,runnerUp v) 
+    sensTopTwo :: a -> c -> Sens b 
+    sensTopTwo a = let v = finval a in sens a (winner v,runnerUp v) 
 
 
 instance (Set o,SetVal2 a b,Bound a) => SvalDefault o (Val2 o a b) o a (a,b) where {}
