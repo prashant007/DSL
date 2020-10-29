@@ -75,13 +75,13 @@ instance (Ord o,SetVal4 a b c d) => FinVal (Info4 o a b c d) o (a,b,c,d) where
 sensTopTwo' :: (Ord o,Sval o a b c, Bound c) => a -> Val o d -> c -> Sens b 
 sensTopTwo' a v = sens a (winner v,runnerUp v) 
 
--- class (Ord o,Sval o a b c, FinVal a o d,Bound c) => SvalDefault o a b c d | a -> o b c d where
---     sensTopTwo :: a -> Val o d -> c -> Sens b 
---     sensTopTwo a _ = let v = finval a in sens a (winner v,runnerUp v) 
-
 class (Ord o,Sval o a b c, FinVal a o d,Bound c) => SvalDefault o a b c d | a -> o b c d where
-    sensTopTwo :: a -> c -> Sens b 
-    sensTopTwo a = let v = finval a in sens a (winner v,runnerUp v) 
+    sensTopTwo :: a -> Val o d -> c -> Sens b 
+    sensTopTwo a _ = let v = finval a in sens a (winner v,runnerUp v) 
+
+-- class (Ord o,Sval o a b c, FinVal a o d,Bound c) => SvalDefault o a b c d | a -> o b c d where
+--     sensTopTwo :: a -> c -> Sens b 
+--     sensTopTwo a = let v = finval a in sens a (winner v,runnerUp v) 
 
 
 instance (Set o,SetVal2 a b,Bound a) => SvalDefault o (Val2 o a b) o a (a,b) where {}
