@@ -37,6 +37,7 @@ carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
                   -- BMW   --> [Price --> 36000, MPG --> 29, Safety --> 9.1]]
 
 
+
 -- (2) Creating a valuation from data (only for opinions)
 --
 vCarF :: Val Car Feature
@@ -83,6 +84,7 @@ featureOpinions :: Info Feature Opinion
 featureOpinions = info [Price  --> [Personal --> 5, Expert --> 3],
                         MPG    --> [Personal --> 3, Expert --> 5],
                         Safety --> [Personal --> 2, Expert --> 2]]
+
 
 
 featureVal :: Val Car (OneTuple Feature)

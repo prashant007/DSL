@@ -15,19 +15,6 @@ class (Bounded a,Enum a,Ord a) => Set a where
   members :: [a]
   members = enumFromTo minBound maxBound
 
-class Unit a where
-    unit :: a 
-
-
-instance (Set a,Set b) => Unit (a,b) where
-    unit = (head members,head members)
-
-instance (Set a,Set b,Set c) => Unit (a,b,c) where
-    unit = (head members,head members,head members)
-
-
-instance (Set a,Set b,Set c,Set d) => Unit (a,b,c,d) where
-    unit = (head members,head members,head members,head members)
 
 -- Tagged numbers
 --
@@ -74,7 +61,7 @@ diff :: (Ord o,Ord r) => Info o r -> o -> o -> Rec r
 diff i o1 o2 = i!o1 - i!o2
 
 showPairLn :: (Show a,Show b) => (a,b) -> String
-showPairLn (x,y) = show x ++ " -> \n" ++ show y
+showPairLn (x,y) = show x ++ " -> " ++ show y
 
 instance (Show o,Show a) => Show (Info o a) where
   show = showSetLn . map showPairLn . fromInfo

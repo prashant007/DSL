@@ -20,7 +20,11 @@ type Analysis a = (Rec a,Rec a,[Rec a],[Rec a])
 
 -- Summarized set
 --
-data SumSet a = SumSet [a] Double
+data SumSet a = SumSet [a] Double deriving Eq 
+
+instance Eq a => Ord (SumSet a) where
+   SumSet _ x <= SumSet _ y = x <= y 
+
 
 instance Show a => Show (SumSet a) where
   show (SumSet xs d) = showSet (map show xs) ++ " : " ++ printf ("%.2f") d
@@ -42,8 +46,6 @@ instance (Show o,Show a) => Show (Explanation o a) where
   show (Explanation w r d) =
        show w ++ " is the best option; it is better than " ++ show r
                              ++ " because\n" ++ show d
-
-
 
 
 analyze :: Ord a => Rec a -> Analysis a

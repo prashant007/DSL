@@ -35,6 +35,8 @@ type Val3  o a b c = (Val o a,Val a b,Val b c)
 type Info4 o a b c d = (Info o a,Info a b,Info b c,Info c d)
 type Val4  o a b c d = (Val o a,Val a b,Val b c,Val c d)
 
+type Info5 o a b c d e = (Info o a,Info a b,Info b c,Info c d,Info d e)
+
 -- Some commonly used constraint synonyms 
 type Set2 a b = (Set a, Set b)
 type Set3 a b c = (Set a,Set b,Set c)
@@ -121,7 +123,7 @@ denormalize i b (a,Just n)
     | otherwise = if rval' >= 1 then checkBound a b (rval,xn) else  (a,Nothing)
     where
         avals = colVals b i 
-        
+               
         -- sum of reciprocals 
         sumreci= sum.map (\x -> 1/x)   
         rsum = sumreci $ map (\m -> lookupInfo (m,b) i) (members L.\\ [a])

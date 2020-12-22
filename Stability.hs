@@ -27,7 +27,7 @@ sens  :: (Ord b,Sval o a b c,Bound c) => a -> (o,o) -> c -> Sens b
 sens a o c =  mapSens (denormalize (project a) c) $ sens' (valtuple a) o c 
 
 -- ================================================================================
--- ========== Sensitivity Analysis For a 2 level AHP ==============================
+-- ========== Sensitivity Analysis For a 3 level AHP ==============================
 type AHP2 o a b = (Ord o,Set o,SetVal2 a b) 
 
 -- Sensitivity analysis of Level 1 of a 2 level AHP 
@@ -39,7 +39,7 @@ instance (Ord o,Set o,SetVal2 a b) => Sval o (Val2 o a b) a b where
     sens' v o _ = mkSens . map (change22 v o) $ members 
 
 -- -- ================================================================================
--- -- ========== Sensitivity Analysis For a 3 level AHP ==============================
+-- -- ========== Sensitivity Analysis For a 4 level AHP ==============================
 
 -- Sensitivity analysis of Level 1 of a 3 level AHP 
 instance (Set o,Ord2 o b,AHP3 a b c) => Sval o (Val3 o a b c) o a where
@@ -72,8 +72,8 @@ instance (Ord o,SetVal4 a b c d) => FinVal (Info4 o a b c d) o (a,b,c,d) where
     finval (x,y,z,w) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z `extendBy` w)
 
 
-sensTopTwo' :: (Ord o,Sval o a b c, Bound c) => a -> Val o d -> c -> Sens b 
-sensTopTwo' a v = sens a (winner v,runnerUp v) 
+sensDefault :: (Ord o,Sval o a b c, Bound c) => a -> Val o d -> c -> Sens b 
+sensDefault a v = sens a (winner v,runnerUp v) 
 
 class (Ord o,Sval o a b c, FinVal a o d,Bound c) => SvalDefault o a b c d | a -> o b c d where
     sensTopTwo :: a -> Val o d -> c -> Sens b 

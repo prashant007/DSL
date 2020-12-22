@@ -3,7 +3,7 @@ module Election where
 
 import Record
 import Info
-import Focus 
+import Factor  
 import Valuation
 import MDS
 import Dimension
@@ -36,17 +36,26 @@ policy = info [Clinton --> [Environment --> 180,Economic --> 55, Foreign --> 35,
 -- Young voters (300 in number) - 1/3 of youth voters plan to vote based on a candidates education policy, 1/6  each for economic and foregin policy,
 -- and the remaining 1/3 for Health policy. 
 
+-- demography :: Info Policy Demography
+-- demography = info [Environment --> [Young --> 100,MiddleAged --> 75, Old --> 50],
+--                    Economic    --> [Young --> 50, MiddleAged --> 125,Old --> 100],
+--                    Foreign     --> [Young --> 50, MiddleAged --> 75, Old --> 50],
+--                    Health      --> [Young --> 100,MiddleAged --> 75, Old --> 150]]
+
+
 demography :: Info Policy Demography
 demography = info [Environment --> [Young --> 100,MiddleAged --> 75, Old --> 50],
-                   Economic    --> [Young --> 50, MiddleAged --> 125,Old --> 100],
-                   Foreign     --> [Young --> 50, MiddleAged --> 75, Old --> 50],
-                   Health      --> [Young --> 100,MiddleAged --> 75, Old --> 150]]
+                   Economic    --> [Young --> 25, MiddleAged --> 125,Old --> 100],
+                   Foreign     --> [Young --> 75, MiddleAged --> 125, Old --> 50],
+                   Health      --> [Young --> 100,MiddleAged --> 25, Old --> 150]]
 
   
 geography :: Info Demography Geography
 geography = info [Young --> [Rural --> 100,Urban --> 200],
                   MiddleAged --> [Rural --> 150,Urban --> 200],
                   Old --> [Rural --> 250,Urban --> 100]]
+
+  
 
 
 
@@ -64,32 +73,43 @@ vdE :: Rec (Policy,Demography,Geography)
 vdE = diff (shrinkVal candidates) Trump Clinton
 
 
--- type CandidateDecomp = Rec (Policy,Demography,Geography,Population)
+type CandidateDecomp = Rec (Policy,Demography,Geography,Population)
 
--- trump :: CandidateDecomp
--- trump = select Trump candidates
+trump :: CandidateDecomp
+trump = select Trump candidates
 
--- clinton :: CandidateDecomp
--- clinton = select Clinton candidates
+clinton :: CandidateDecomp
+clinton = select Clinton candidates
 
 
--- expCandidate :: Explanation Candidate (Policy,Demography,Geography)
--- expCandidate = explain vdCandidate
+
+expCandidate :: Explanation Candidate (Policy,Demography,Geography)
+expCandidate = explain candidates'
 
 -- c11 = factorize trump :: Focus Population (Policy,Demography,Geography)
 -- c12 = factorize clinton :: Focus Population (Policy,Demography,Geography)
 
--- vdCandidate :: Rec (Policy,Demography,Geography)
--- vdCandidate = shrink $ candidates!Trump - candidates!Clinton
+vdCandidate :: Rec (Policy,Demography,Geography)
+vdCandidate = candidates'!Trump - candidates'!Clinton
 
--- expDemography :: Explanation Demography 
--- expDemography = generalize vdCandidate 
+vdDemo :: Rec Demography 
+vdDemo = focus vdCandidate  
 
--- expGeography :: Explanation Geography
--- expGeography = generalize vdCandidate 
+vdGeo :: Rec Geography 
+vdGeo = focus vdCandidate 
 
--- expPolicy :: Explanation Policy
--- expPolicy = generalize vdCandidate 
+vdPol :: Rec Policy 
+vdPol = focus vdCandidate 
+
+
+expDemography :: Explanation Candidate Demography 
+expDemography = explain $ focus candidates'  
+
+expGeography :: Explanation Candidate Geography
+expGeography = explain $ focus candidates'  
+
+expPolicy :: Explanation Candidate Policy
+expPolicy = explain $ focus candidates'  
 
 
 -- (_,support,barrier,mdss,_) = expCandidate

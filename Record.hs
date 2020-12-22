@@ -112,7 +112,7 @@ showSet :: [String] -> String
 showSet xs = "{" ++ intercalate ", " xs ++ "}"
 
 showSetLn :: [String] -> String
-showSetLn xs = "{" ++ intercalate ",\n " xs ++ "}"
+showSetLn xs = "{" ++ intercalate ",\n " xs ++ "}\n"
 
 -- show record values as percentages
 showRec :: Show a => Int -> String -> Rec a -> String

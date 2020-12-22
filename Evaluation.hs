@@ -1,170 +1,134 @@
-import qualified Data.Set as S 
-import Data.List 
-import Data.Function(on)
-import Data.Either.Utils
-import System.Random 
-import Data.Sort 
-import Data.List  
-import Control.Monad 
-import Graphics.Rendering.Chart.Easy
-import Graphics.Rendering.Chart.Backend.Cairo
-import GSL.Random.Dist 
-import GSL.Random.Gen 
-import qualified Data.Vector.Storable as V
-import qualified Data.Map as M 
+module Evaluation where
+
+import System.Random.MWC.Probability
+import Control.Monad.State
+import Data.List hiding (transpose)
+import System.Random hiding (uniformR)
+import Control.Monad.Random as R 
+import Data.Function (on)
+
+import EvalValuations
+import StabilityHelper 
+import Valuation 
+import Record
+import Info
+import Dimension
+import MDS 
+import GenAHPVals
 
 
-type Alpha   = Double 
-type Value   = Double 
-type Ranking = Integer 
-type Alternative = String
-type ErrorMsg = String 
-type AttrName = String
+-- ==================================================================================== 
+type SampleCount = Int 
+type FocusFactor = Double
+type ReductionFactor = Double 
 
-type Mode = Int -- 0 for equal mode , anything else for random mode
+type FocusVal = ((Levels,AttrCount),(SampleCount,FocusFactor))
+type ReductionVal = ((Levels,AttrCount),(SampleCount,ReductionFactor))
 
-genWeights :: Mode -> Int -> M.Map Int [[Alpha]] -> IO [Alpha]
-genWeights m n mlist = do 
-      let alpha = (1/fromIntegral n) :: Alpha
-      return $ take n (repeat alpha)
+type Levels = Int 
 
 
-genAlphas :: Int -> M.Map Int [[Alpha]] -> IO [Alpha]
-genAlphas n mlist = do 
-  gen <- newStdGen
-  let nlist = (removeJust. M.lookup n) mlist
-      rnum = fst $ randomR (0,(length nlist)-1) gen
-      removeJust (Just j) = j
-  return (nlist !! rnum) 
+-- The attribute count at the botton most level can be
+-- used to know what alternatives were generated 
+genPairs :: Eq a => Ratio -> AttrCount -> Val Attr a -> [(Attr,Attr)]
+genPairs r c v = [(a,b) | a <- as, b <- as, ratio (totV a) (totV b)]
+  where
+    as = map (\x -> "A1" ++ show x) [1..c]
+    ratio x y  = x/y > 1 && x/y <= r
+    v' = total v 
+    totV x = lookupRec x v' 
 
 
-memoizeWeights :: Ratio -> IO (M.Map Int [[Alpha]])
-memoizeWeights r = return $ M.empty  
+-- Second argument represents the total number of arguments in a valuation for an alternative
+focusFactL1 :: Ord a => Levels -> AttrCount -> Val Attr a -> [(Attr,Attr)] -> FocusVal                      
+focusFactL1 l n v ls = ((l,n),(length ls,sum . map (focusFact1 n v) $ ls)) 
+
+focusFact1 :: Ord a => AttrCount -> Val Attr a -> (Attr,Attr) -> FocusFactor 
+focusFact1 n v (x,y) = fromIntegral mlen/ fromIntegral n
+    where 
+          mlen = length . fromRec . mds' $ diff v x y
+          mds' = if flag == 0 then (head.mds) else mds1 
 
 
-genAlphasD :: Int -> Double -> IO [Alpha]
-genAlphasD n d = do
-  v <- newRNG mt19937
-  nums <-  getDirichlet v (V.replicate n d)
-  --putStrLn $ show nums  
-  return $ (reverse. sort. V.toList) nums
-              
-list = [0.10,0.11..(8.00)] 
+flag = 1
+
+-- ==================================================================
+-- ==================================================================
+
+type AttrCount3 = (AttrCount,AttrCount,AttrCount)
+type AttrCount4 = (AttrCount,AttrCount,AttrCount,AttrCount)
+type AttrCount5 = (AttrCount,AttrCount,AttrCount,AttrCount,AttrCount)
+type AttrCount6 = (AttrCount,AttrCount,AttrCount,AttrCount,AttrCount,AttrCount)
+
+genAHPDims :: Int -> (Int,Int) -> IO [Int]
+genAHPDims n p = do 
+  alts <- getRandomR (2,5) -- the alternatives 
+  let last = [1]
+  rem  <- getRandomRs p 
+  let rem' = take (n-2) rem
+  case mulL rem' <= 400 of
+    True  -> return $ alts:rem' ++ [1]
+    False -> genAHPDims n p 
 
 
-evalRatio :: [Double] -> Int -> [[Alpha]] -> Int -> Ratio -> IO (Int,[[Alpha]])
-evalRatio [] n ls c r = return (n,ls) 
-evalRatio (x:xs) n ls c r = do 
-  tr <- testRatio n x 
-  let ffst = (floor.fst) tr 
-  case c <= 40 of 
-    True  -> do 
-      case fromIntegral ffst < r && ffst >= 1 of 
-        True  -> evalRatio xs n (snd tr:ls) (c+1) r 
-        False -> evalRatio xs n ls c r 
-    False -> return (n,ls)
+genTests :: Ratio -> Levels -> SampleCount -> IO [ReductionVal]
+genTests r l s = do 
+    xs <- mapM (\_ -> testLevel r l) $ [1..s]
+    return $ map (toReductionVal) $ getAvgFocus xs  
+    where
+      toReductionVal :: FocusVal -> ReductionVal 
+      toReductionVal (x,(y,z)) = (x,(y,(1-z)*100))
+
+      getAvgFocus :: [FocusVal] -> [FocusVal]
+      getAvgFocus xs = map sumGroup $ groupElem xs
+          where
+            groupElem = groupBy ((==) `on` fst) . sort 
+            sumPairs  = foldl (\(a,b) (c,d) -> (a+c,b+d)) (0,0)
+            avgGrpElems = (\(x,y) -> (x, y/fromIntegral x)) . sumPairs . map snd
+            sumGroup x = (fst.head $ x, avgGrpElems x) 
 
 
+mulL :: [Int] -> Int 
+mulL = foldl ((*)) 1 
 
+testLevel :: Ratio -> Levels -> IO FocusVal 
+testLevel r l = do 
+      ds <- genAHPDims l (2,20) 
+      vs <- genFinVals ds 
+      let d1 = ds !! 0
+          n  = mulL.tail $ ds
+      case length ds of 
+        3 -> checkEmpty l (d1,n) (composeVals2 vs) r
+        4 -> checkEmpty l (d1,n) (composeVals3 vs) r
+        5 -> checkEmpty l (d1,n) (composeVals4 vs) r
+        6 -> checkEmpty l (d1,n) (composeVals5 vs) r
+        x -> error $  show x
+      where 
+        checkEmpty :: Ord b => Levels -> (AttrCount,AttrCount) -> Val String b -> Ratio -> IO FocusVal 
+        checkEmpty l (d1,n) xs r = do 
+            let as = genPairs r d1 xs 
+            case as /= [] of 
+              True  -> return $ focusFactL1 l n xs as 
+              False -> testLevel r l 
 
+-- ==================================================================
+-- ==================================================================
 
--- evalRatio :: [Double] -> Int -> [(Double,Int)] -> IO (Int,[(Double,Int)])
--- evalRatio [] n ls = return (n,ls) 
--- evalRatio (x:xs) n ls = do 
---   tr <- testRatio n x 
---   let ffst = (floor.fst) tr 
---   case ffst < 9 && ffst >= 2 of 
---     True  -> evalRatio xs n ((x,ffst):ls)
---     False -> evalRatio xs n ls 
+--minimal dominating sets
+mds1 :: Ord a => Rec a -> Rec a 
+mds1 r = let 
+             (support,barrier) = partition ((>0) . snd) (fromRec r)
+             absSum = abs . sum . map snd
+             sumBarrier = absSum barrier
+             sortedSupp = reverse . sortBy (compare `on` snd) $ support
 
+             mdsHelp :: Double -> [(a,Double)] -> [(a,Double)] -> [(a,Double)]
+             mdsHelp v [] ps = ps 
+             mdsHelp v (a@(_,av):xs) ps 
+               | vav >= 0  = mdsHelp vav xs aps
+               | otherwise = aps
+               where 
+                 vav = v - av 
+                 aps = a:ps 
 
-
-type Ratio = Double
-
-testRatio :: Int -> Double -> IO (Ratio,[Alpha]) 
-testRatio n d = do 
-  as <- genAlphasD n d 
-  let ratioFun x = (head x)/(last x)
-  return $ (ratioFun as,as) 
-
-numGen n = do 
-  gen <- newStdGen
-  let ns = randomRs (0.01,0.99) gen :: [Double]
-  return $ take n ns
-
-
-
-genVals :: [Alternative] -> RowSize -> ColSize -> IO [(Alternative,[Value])]
-genVals as rs cs = do  
-  bs <- numGen (rs*cs)
-  let aFun [] 0 _ [] = []
-      aFun (a:axs) rys czs bws = (a,take czs bws) : aFun axs (rys-1) czs (drop czs bws)   
-  return $ aFun as rs cs bs 
-
-
-
--- genWeightandValues :: [Alternative] -> ColSize -> IO ([Alpha],[(Alternative,[Value])])
--- genWeightandValues as cs = do 
---     alphas <- genAlphas cs 
---     vals   <- genVals as (length as) cs  
---     return (alphas,vals)
-
-
-genWeightandValues :: [Alternative] -> ColSize -> M.Map Int [[Alpha]] -> IO ([Alpha],[(Alternative,[Value])])
-genWeightandValues as cs mlist = do 
-    alphas <- genWeights 0 cs mlist
-    vals   <- genVals as (length as) cs  
-    return (alphas,vals)
-
-
-
-type RowSize = Int 
-type ColSize = Int 
-type Shrinkage = Double 
-
-
-
-main = do 
-  mlist <- memoizeWeights 9 
-  -- xs1 <- testShrCompLength 2000 8 mlist
-  xs2 <- testShrCompLength 600 10 mlist
-  -- xs3 <- testShrCompLength 2000 14 mlist
-  -- xs4 <- testShrCompLength 2000 18 mlist
-  toFile def "Srinkage_600.png" $ do
-    layout_title .= "Shrinkage (Y-Axis) vs Number of Decomposed Components % (X-Axis) [EQUAL WEIGHTS -- NEW MDS]"
-    --mapM_ (\x -> plot (line "" x)) [fs] 
-    -- plot (line "No of Alternatives in MADM = 8" [xs1]) 
-    plot (line "No of Alternatives in MADM = 10" [xs2])
-    -- plot (line "No of Alternatives in MADM = 14" [xs3])
-    -- plot (line "No of Alternatives in MADM = 18" [xs4])
-
-
-testShrinkage :: [Alternative] -> ColSize -> M.Map Int [[Alpha]] -> IO Average
-testShrinkage alts csz mlist = do 
-    inp <- genWeightandValues alts csz mlist
-    let 
-      f (x,y) = (explNList. snd. rmvRight. madm_wsm x) y 
-    return $ f inp 
-
-
-testShrinkages :: Int -> [Alternative] -> ColSize -> M.Map Int [[Alpha]] -> IO [Average]
-testShrinkages 0 _ _ _ = return []
-testShrinkages n as cs mlist = do 
-  x  <- testShrinkage as cs mlist
-  xs <- testShrinkages (n-1) as cs mlist
-  return (x:xs)
-
-testShrMain :: Int -> [Alternative] -> ColSize -> M.Map Int [[Alpha]] -> IO (ColSize,Average)
-testShrMain n as cs mlist = do 
-    avrs <- testShrinkages n as cs mlist
-    return (cs,sum avrs/((fromIntegral.length)avrs))
-
-testShrCompLength :: Int -> RowSize -> M.Map Int [[Alpha]] ->  IO [(ColSize,Average)]
-testShrCompLength n rs mlist = do 
-    let --cs = [4,5,6,7,8,9,10,18,20,22,28,30,36,42,48,80,90,100,120,140]
-        cs = [4,8..600] 
-        alts = map (\x -> "A" ++ show x) [1..rs]
-    mapM (\x -> testShrMain n alts x mlist) cs   
-
--- =====================================================================================
--- =====================================================================================
+         in mkRec $ mdsHelp sumBarrier sortedSupp []

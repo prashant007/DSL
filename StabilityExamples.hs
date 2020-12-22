@@ -51,7 +51,7 @@ instance Bound Opinion
 carFeatures :: Info Car Feature
 carFeatures = info [Honda --> [Price --> (34000), MPG --> 30, Safety --> 9.8],
                     BMW   --> [Price --> (36000), MPG --> 32, Safety --> 9.1],
-                    Toyota--> [Price --> (24000), MPG --> 28, Safety --> 8.1]]
+                    Toyota--> [Price --> (27000), MPG --> 28, Safety --> 8.1]]
 
 
 
@@ -92,7 +92,6 @@ c11TH = sens carData (Toyota,Honda) Price :: Sens Car
 c12TH = sens carData (Toyota,Honda) MPG   :: Sens Car
 c13TH = sens carData (Toyota,Honda) Safety:: Sens Car
 
-
 c21HB  = sens carData (Honda,BMW) Personal :: Sens Feature
 c22HB  = sens carData (Honda,BMW) Expert :: Sens Feature
 c21TH  = sens carData (Toyota,Honda) Personal :: Sens Feature
@@ -103,7 +102,5 @@ c3TH   = sensTopTwo carData cars Weighted :: Sens Opinion
 c3HB   = sens carData (Honda,BMW) Weighted :: Sens Opinion
 
 t = total $ cars 
-
-
 
 
