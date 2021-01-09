@@ -40,12 +40,6 @@ instance Bound Weight where
 
 instance Bound Opinion
 
--- change back valence 
--- carFeatures :: Info Car Feature
--- carFeatures = info [Honda --> [Price --> (40), MPG --> 30, Safety --> 9.8],
---                     BMW   --> [Price --> (36000), MPG --> 32, Safety --> 9.1],
---                     Toyota--> [Price --> (24000), MPG --> 28, Safety --> 8.1]]
-
 
 -- change back valence 
 carFeatures :: Info Car Feature
@@ -84,9 +78,9 @@ c11HB = sens carData (Honda,BMW) Price :: Sens Car
 c12HB = sens carData (Honda,BMW) MPG   :: Sens Car
 c13HB = sens carData (Honda,BMW) Safety :: Sens Car
 
-c11THD= sensTopTwo carData cars Price :: Sens Car 
-c12THD= sensTopTwo carData cars MPG :: Sens Car 
-c13THD= sensTopTwo carData cars Safety :: Sens Car 
+c11THD= sensDefault carData cars Price :: Sens Car 
+c12THD= sensDefault carData cars MPG :: Sens Car 
+c13THD= sensDefault carData cars Safety :: Sens Car 
 
 c11TH = sens carData (Toyota,Honda) Price :: Sens Car 
 c12TH = sens carData (Toyota,Honda) MPG   :: Sens Car
@@ -98,7 +92,7 @@ c21TH  = sens carData (Toyota,Honda) Personal :: Sens Feature
 c22TH  = sens carData (Toyota,Honda) Expert :: Sens Feature
 
 
-c3TH   = sensTopTwo carData cars Weighted :: Sens Opinion
+c3TH   = sensDefault carData cars Weighted :: Sens Opinion
 c3HB   = sens carData (Honda,BMW) Weighted :: Sens Opinion
 
 t = total $ cars 

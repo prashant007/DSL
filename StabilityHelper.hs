@@ -114,6 +114,8 @@ checkBound a b (cv,ov) = if (cond1 || cond2) && cond3 then (a,Just cv) else (a,N
         cond3 = (ov - cv) > 0 && (ov - cv) <= u 
 
 
+
+
 -- denormalization is the opposite of normalization, that is going
 -- from normalized to the original values 
 denormalize :: (Set a, SetVal b,Bound b) => Info a b -> b -> (a,Maybe Double) -> (a,Maybe Double)
