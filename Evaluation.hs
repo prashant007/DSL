@@ -66,7 +66,7 @@ genAHPDims n p = do
   let last = [1]
   rem  <- getRandomRs p 
   let rem' = take (n-2) rem
-  case mulL rem' <= 400 of
+  case mulL rem' <= 100 of
     True  -> return $ alts:rem' ++ [1]
     False -> genAHPDims n p 
 
@@ -93,7 +93,7 @@ mulL = foldl ((*)) 1
 
 testLevel :: Ratio -> Levels -> IO FocusVal 
 testLevel r l = do 
-      ds <- genAHPDims l (2,20) 
+      ds <- genAHPDims l (2,50) 
       vs <- genFinVals ds 
       let d1 = ds !! 0
           n  = mulL.tail $ ds

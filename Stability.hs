@@ -18,13 +18,17 @@ import Sens
 import StabilityHelper
 
 
+
+
 -- Helper functions are in StabilityHelper
-class (Ord b,Set2 b c,Covers a (Info b c),Valence c,Valtuple a) => Sval o a b c | a -> o b c where
+
+class (Ord b,Covers a (Info b c),Valence c) => Sval o a b c | a o c -> b where
     sens' :: a -> (o,o) -> c -> Sens b
 
+
 -- maybe add percentages here
-sens  :: (Ord b,Sval o a b c,Bound c) => a -> (o,o) -> c -> Sens b
-sens a o c =  mapSens (denormalize (project a) c) $ sens' (valtuple a) o c 
+sens  :: (Ord b,Set2 b c,Valtuple a,Sval o a b c,Bound c) => a -> (o,o) -> c -> Sens b
+sens a o c = mapSens (denormalize (project a) c) $ sens' (valtuple a) o c 
 
 -- ================================================================================
 -- ========== Sensitivity Analysis For a 3 level AHP ==============================
@@ -72,7 +76,7 @@ instance (Ord o,SetVal4 a b c d) => FinVal (Info4 o a b c d) o (a,b,c,d) where
     finval (x,y,z,w) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z `extendBy` w)
 
 
-sensDefault :: (Ord o,Sval o a b c, Bound c) => a -> Val o d -> c -> Sens b 
+sensDefault :: (Ord o,Set2 b c,Sval o a b c,Valtuple a, Bound c) => a -> Val o d -> c -> Sens b 
 sensDefault a v = sens a (winner v,runnerUp v) 
 
 

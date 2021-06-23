@@ -74,26 +74,26 @@ cars :: Val Car (Feature,Opinion,Weight)
 cars = carOpinions `extendBy` weights
 
 carData = (carFeatures,featureOpinions,weights)
-c11HB = sens carData (Honda,BMW) Price :: Sens Car 
-c12HB = sens carData (Honda,BMW) MPG   :: Sens Car
-c13HB = sens carData (Honda,BMW) Safety :: Sens Car
+c11HB = sens carData (Honda,BMW) Price 
+c12HB = sens carData (Honda,BMW) MPG   
+c13HB = sens carData (Honda,BMW) Safety 
 
-c11THD= sensDefault carData cars Price :: Sens Car 
-c12THD= sensDefault carData cars MPG :: Sens Car 
-c13THD= sensDefault carData cars Safety :: Sens Car 
+c11THD= sensDefault carData cars Price  
+c12THD= sensDefault carData cars MPG 
+c13THD= sensDefault carData cars Safety 
 
-c11TH = sens carData (Toyota,Honda) Price :: Sens Car 
-c12TH = sens carData (Toyota,Honda) MPG   :: Sens Car
-c13TH = sens carData (Toyota,Honda) Safety:: Sens Car
+c11TH = sens carData (Toyota,Honda) Price 
+c12TH = sens carData (Toyota,Honda) MPG   
+c13TH = sens carData (Toyota,Honda) Safety
 
-c21HB  = sens carData (Honda,BMW) Personal :: Sens Feature
-c22HB  = sens carData (Honda,BMW) Expert :: Sens Feature
-c21TH  = sens carData (Toyota,Honda) Personal :: Sens Feature
-c22TH  = sens carData (Toyota,Honda) Expert :: Sens Feature
+c21HB  = sens carData (Honda,BMW) Personal 
+c22HB  = sens carData (Honda,BMW) Expert 
+c21TH  = sens carData (Toyota,Honda) Personal 
+c22TH  = sens carData (Toyota,Honda) Expert 
 
 
-c3TH   = sensDefault carData cars Weighted :: Sens Opinion
-c3HB   = sens carData (Honda,BMW) Weighted :: Sens Opinion
+c3TH   = sensDefault carData cars Weighted 
+c3HB   = sens carData (Honda,BMW) Weighted 
 
 t = total $ cars 
 
