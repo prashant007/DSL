@@ -50,17 +50,17 @@ type Ord2 a b = (Ord a,Ord b)
 type AHP3 a b c = (SetVal3 a b c,Covers (b,c) c)
 
 
-class Valtuple a where
-    valtuple :: a -> a 
+class Norm a where
+    norm :: a -> a 
 
-instance (Ord o,SetVal2 a b) => Valtuple (Info2 o a b) where
-    valtuple (x,y) = (valuation x,valuation y)
+instance (Ord o,SetVal2 a b) => Norm (Info2 o a b) where
+    norm (x,y) = (valuation x,valuation y)
 
-instance (Ord o,SetVal3 a b c) => Valtuple (Info3 o a b c)  where
-    valtuple (x,y,z) = (valuation x,valuation y,valuation z)
+instance (Ord o,SetVal3 a b c) => Norm (Info3 o a b c)  where
+    norm (x,y,z) = (valuation x,valuation y,valuation z)
 
-instance (Ord o,SetVal4 a b c d) => Valtuple (Info4 o a b c d) where
-    valtuple (w,x,y,z) = (valuation w,valuation x,valuation y,valuation z)
+instance (Ord o,SetVal4 a b c d) => Norm (Info4 o a b c d) where
+    norm (w,x,y,z) = (valuation w,valuation x,valuation y,valuation z)
 
 -- ================================================================================
 -- ================= HELPER FUNCTIONS FOR SENSITIVITY ANALYSIS ====================

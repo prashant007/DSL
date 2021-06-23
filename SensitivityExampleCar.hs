@@ -33,9 +33,9 @@ instance Bound Opinion
 
 -- change back valence 
 carFeatures :: Info Car Feature
-carFeatures = info [Honda --> [Price --> (34000), MPG --> 30, Safety --> 9.8],
-                    BMW   --> [Price --> (36000), MPG --> 32, Safety --> 9.1],
-                    Toyota--> [Price --> (27000), MPG --> 28, Safety --> 8.1]]
+carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
+                    BMW   --> [Price --> 36000, MPG --> 32, Safety --> 9.1],
+                    Toyota--> [Price --> 27000, MPG --> 28, Safety --> 8.1]]
 
 
 vCarF :: Val Car Feature
@@ -63,26 +63,26 @@ cars :: Val Car (Feature,Opinion,Weight)
 cars = carOpinions `extendBy` weights
 
 carData = (carFeatures,featureOpinions,weights)
-c11HB = sens carData (Honda,BMW) Price 
-c12HB = sens carData (Honda,BMW) MPG   
-c13HB = sens carData (Honda,BMW) Safety 
+c11HB = sensitivity carData (Honda,BMW) Price 
+c12HB = sensitivity carData (Honda,BMW) MPG   
+c13HB = sensitivity carData (Honda,BMW) Safety 
 
 c11THD= sensDefault carData cars Price  
 c12THD= sensDefault carData cars MPG 
 c13THD= sensDefault carData cars Safety 
 
-c11TH = sens carData (Toyota,Honda) Price 
-c12TH = sens carData (Toyota,Honda) MPG   
-c13TH = sens carData (Toyota,Honda) Safety
+c11TH = sensitivity carData (Toyota,Honda) Price 
+c12TH = sensitivity carData (Toyota,Honda) MPG   
+c13TH = sensitivity carData (Toyota,Honda) Safety
 
-c21HB  = sens carData (Honda,BMW) Personal 
-c22HB  = sens carData (Honda,BMW) Expert 
-c21TH  = sens carData (Toyota,Honda) Personal 
-c22TH  = sens carData (Toyota,Honda) Expert 
+c21HB  = sensitivity carData (Honda,BMW) Personal 
+c22HB  = sensitivity carData (Honda,BMW) Expert 
+c21TH  = sensitivity carData (Toyota,Honda) Personal 
+c22TH  = sensitivity carData (Toyota,Honda) Expert 
 
 
 c3TH   = sensDefault carData cars Weighted 
-c3HB   = sens carData (Honda,BMW) Weighted 
+c3HB   = sensitivity carData (Honda,BMW) Weighted 
 
 t = total $ cars 
 
