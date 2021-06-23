@@ -38,7 +38,10 @@ showPairM _ _ (x,_)       = show x ++ " -> *"
 --     minVal :: a -> Int 
 --     minVal _ = minBound 
 
-class Bound a where
+class Limit a where
     upperBound :: a -> Int
     upperBound _ = maxBound
+
+    lowerBound :: a -> Int 
+    lowerBound _ = 0 
 

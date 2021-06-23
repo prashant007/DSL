@@ -16,7 +16,7 @@ class (Ord b,Set b,Set c,Covers a (Info b c),Valence c) =>
       Sensitivity o a b c | a o c -> b where
   sensitivityNorm :: a -> (o,o) -> c -> Change b 
 
-sensitivity :: (Ord b,Norm a,Sensitivity o a b c,Bound c) => 
+sensitivity :: (Ord b,Norm a,Sensitivity o a b c,Limit  c) => 
                a -> (o,o) -> c -> Change b 
 sensitivity a o c = mapChange (denormalize (project a) c) $ sensitivityNorm (norm a) o c 
 
@@ -65,7 +65,7 @@ instance (Ord o,SetVal4 a b c d) => FinVal (Info4 o a b c d) o (a,b,c,d) where
     finval (x,y,z,w) = (mkOneTuple (valuation x) `extendBy` y `extendBy` z `extendBy` w)
 
 
-sensDefault :: (Ord o,Set2 b c,Sensitivity o a b c,Norm a, Bound c) => 
+sensDefault :: (Ord o,Set2 b c,Sensitivity o a b c,Norm a, Limit  c) => 
                a -> Val o d -> c -> Change b 
 sensDefault a v = sensitivity a (winner v,runnerUp v) 
 

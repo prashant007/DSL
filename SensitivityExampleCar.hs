@@ -21,15 +21,19 @@ instance Valence Feature where
 instance Valence Opinion
 instance Valence Weight
 
-instance Bound Feature where
+instance Limit Feature where
     upperBound Price = maxBound
     upperBound MPG   = 50
     upperBound Safety= 10
 
-instance Bound Weight where
+    lowerBound Price = 10000
+    lowerBound MPG   = 10
+    lowerBound Safety= 1
+
+instance Limit Weight where
     upperBound Weighted = 100 
 
-instance Bound Opinion
+instance Limit Opinion
 
 -- change back valence 
 carFeatures :: Info Car Feature
@@ -37,10 +41,8 @@ carFeatures = info [Honda --> [Price --> 34000, MPG --> 30, Safety --> 9.8],
                     BMW   --> [Price --> 36000, MPG --> 32, Safety --> 9.1],
                     Toyota--> [Price --> 27000, MPG --> 28, Safety --> 8.1]]
 
-
 vCarF :: Val Car Feature
 vCarF = valuation carFeatures
-
 
 featureOpinions :: Info Feature Opinion
 featureOpinions = info [Price  --> [Personal --> 5, Expert --> 3],
@@ -79,7 +81,6 @@ c21HB  = sensitivity carData (Honda,BMW) Personal
 c22HB  = sensitivity carData (Honda,BMW) Expert 
 c21TH  = sensitivity carData (Toyota,Honda) Personal 
 c22TH  = sensitivity carData (Toyota,Honda) Expert 
-
 
 c3TH   = sensDefault carData cars Weighted 
 c3HB   = sensitivity carData (Honda,BMW) Weighted 

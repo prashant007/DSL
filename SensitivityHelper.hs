@@ -35,7 +35,7 @@ type Set2 a b = (Set a, Set b)
 type Set3 a b c = (Set a,Set b,Set c)
 type Set4 a b c d = (Set a,Set b,Set c,Set d)
 
-type Bound2 a b = (Bound a,Bound b)
+--type Bound2 a b = (Bound a,Bound b)
 
 type Valence2 a b = (Valence a,Valence b)
 type Valence3 a b c = (Valence a,Valence b,Valence c)
@@ -96,22 +96,22 @@ dotprod o b (v1,v2) = rowVals o v1 `dot` colVals b v2
 -- some times the change suggested by sensitivity analysis may not be feasible.
 -- This function ensures that the changes suggested by sensitivity analysis
 -- is within the acceptable limits for an attribute. 
-checkBound :: Bound b => a -> b -> (Double,Double) -> (a,Maybe Double) 
-checkBound a b (cv,ov) = if (cond1 || cond2) && cond3 then (a,Just cv) else (a,Nothing)
+
+checkBound :: Limit b => a -> b -> (Double,Double) -> (a,Maybe Double) 
+checkBound a b (cv,ov) = if cond then (a,Just cv) else (a,Nothing)
     where 
-        u = fromIntegral . upperBound $ b  
-        cond1 = cv >= 0 && cv < u 
-        cond2 = cv < 0 && abs cv < u 
-        cond3 = (ov - cv) > 0 && (ov - cv) <= u 
+        u = fromIntegral . upperBound $ b 
+        l = fromIntegral . lowerBound $ b
+        cond = (ov - cv) >= l && (ov - cv) <= u 
 
 
 -- denormalization is the opposite of normalization, that is going
 -- from normalized to the original values 
-denormalize :: (Set a, SetVal b,Bound b) => Info a b -> b -> (a,Maybe Double) -> (a,Maybe Double)
+denormalize :: (Set a, SetVal b,Limit b) => Info a b -> b -> (a,Maybe Double) -> (a,Maybe Double)
 denormalize i _ p@(a,Nothing) = p 
 denormalize i b (a,Just n)
     | valence b = checkBound a b (n * sum avals,xn) 
-    | otherwise = if rval' >= 1 then checkBound a b (rval,xn) else  (a,Nothing)
+    | otherwise = if rval' >= 1 then checkBound a b (rval,xn) else (a,Nothing)
     where
         avals = colVals b i 
                
