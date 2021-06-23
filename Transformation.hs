@@ -1,14 +1,10 @@
-{-# LANGUAGE  MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances #-}
+{-# LANGUAGE  FunctionalDependencies, FlexibleInstances #-}
 
 module Transformation where
 
-import Data.Function
 import qualified Data.Map as M
 import Text.Printf
-import Data.List hiding (filter)
 import Prelude hiding (filter)
-import Data.Tuple.OneTuple as T (only,OneTuple)
-import Data.Maybe
 
 import Record
 import Info
@@ -16,7 +12,6 @@ import Valuation
 import Factor
 import Dimension
 import MDS hiding (compare)
-
 
 -- ================== GENERALIZE ==========================================
 -- ========================================================================

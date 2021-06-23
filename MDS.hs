@@ -1,4 +1,5 @@
-{-# LANGUAGE  MultiParamTypeClasses, FunctionalDependencies #-}
+{-# LANGUAGE  MultiParamTypeClasses #-}
+
 module MDS where
 
 import qualified Data.Map.Strict as M

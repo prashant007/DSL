@@ -1,4 +1,6 @@
-{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances #-}
+{-# LANGUAGE  MultiParamTypeClasses  #-}
+{-# LANGUAGE  FunctionalDependencies #-}
+{-# LANGUAGE  FlexibleInstances      #-}
 
 module Dimension where
 

@@ -1,20 +1,11 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE FlexibleContexts #-}
-
-
 
 import Record
 import Info
 import Valuation
 import Data.Tuple.OneTuple (OneTuple(..))
-import MDS
-import Factor
-import Transformation
-import Stability
-import Sens 
-import StabilityHelper 
+import SensitivityAnalysis
+import SensDataType
 
 
 data Car     = Honda | BMW | Toyota  deriving (Eq,Ord,Show,Enum,Bounded,Set)
@@ -40,13 +31,11 @@ instance Bound Weight where
 
 instance Bound Opinion
 
-
 -- change back valence 
 carFeatures :: Info Car Feature
 carFeatures = info [Honda --> [Price --> (34000), MPG --> 30, Safety --> 9.8],
                     BMW   --> [Price --> (36000), MPG --> 32, Safety --> 9.1],
                     Toyota--> [Price --> (27000), MPG --> 28, Safety --> 8.1]]
-
 
 
 vCarF :: Val Car Feature

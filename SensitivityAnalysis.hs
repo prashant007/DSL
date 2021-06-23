@@ -1,26 +1,16 @@
-{-# LANGUAGE  MultiParamTypeClasses,FunctionalDependencies,FlexibleInstances,DataKinds#-}
-{-# LANGUAGE FlexibleContexts,ScopedTypeVariables,UndecidableInstances,ConstraintKinds,TypeApplications #-}
+{-# LANGUAGE FunctionalDependencies,FlexibleInstances,FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables,UndecidableInstances,ConstraintKinds #-}
 
-module Stability where
+module SensitivityAnalysis where
 
-import qualified Data.Map as M 
-import Data.Tuple.OneTuple (OneTuple(..))
-import qualified Data.List as L 
-import GHC.TypeLits
-
-import Record
 import Info
 import Valuation hiding (val)
 import MDS
 import Transformation
 import Dimension
-import Sens 
-import StabilityHelper
+import SensDataType 
+import SensitivityHelper
 
-
-
-
--- Helper functions are in StabilityHelper
 
 class (Ord b,Covers a (Info b c),Valence c) => Sval o a b c | a o c -> b where
     sens' :: a -> (o,o) -> c -> Sens b

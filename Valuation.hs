@@ -1,27 +1,19 @@
-{-# LANGUAGE  MultiParamTypeClasses, FunctionalDependencies #-}
-{-# LANGUAGE FlexibleContexts,ScopedTypeVariables,UndecidableInstances,ConstraintKinds,FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Valuation where
 
 import qualified Data.Map.Strict as M
-import Data.Map.Merge.Strict
-import Data.Function (on)
-import Data.List hiding (transpose)
-import Text.Printf
-import Data.Maybe
 import Data.Tuple.OneTuple (only,OneTuple(..))
 
 import Record
 import Info
 import Dimension
 
-
 -- Distinguish beneficial and non-beneficial attributes
 --
 class Ord a => Valence a where
    valence :: a -> Bool
    valence _ = True
-
 
 -- Aggregation Structures
 --

@@ -1,16 +1,7 @@
-module Sens where
+module SensDataType where
 
 import qualified Data.Map as M 
-import Data.Tuple.OneTuple (OneTuple(..))
-import qualified Data.List as L 
-import GHC.TypeLits
-
 import Record
-import Info
-import Valuation hiding (val)
-import MDS
-import Transformation
-import Dimension
 
 data Sens a = Sens {unsens :: M.Map a (Maybe Double)}
 

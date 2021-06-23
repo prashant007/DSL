@@ -2,24 +2,17 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 
+module SensitivityHelper where
 
-
-module StabilityHelper where
-
-import qualified Data.Map as M 
 import Data.Tuple.OneTuple (OneTuple(..))
 import qualified Data.List as L 
 
 import Record
 import Info
 import Valuation hiding (val)
-import MDS
-import Transformation
 import Dimension
-import Sens 
+import SensDataType 
 
 -- mode true is percentage representation 
 mode :: Bool 
@@ -69,8 +62,6 @@ instance (Ord o,SetVal3 a b c) => Valtuple (Info3 o a b c)  where
 instance (Ord o,SetVal4 a b c d) => Valtuple (Info4 o a b c d) where
     valtuple (w,x,y,z) = (valuation w,valuation x,valuation y,valuation z)
 
-
-
 -- ================================================================================
 -- ================= HELPER FUNCTIONS FOR SENSITIVITY ANALYSIS ====================
 
@@ -112,8 +103,6 @@ checkBound a b (cv,ov) = if (cond1 || cond2) && cond3 then (a,Just cv) else (a,N
         cond1 = cv >= 0 && cv < u 
         cond2 = cv < 0 && abs cv < u 
         cond3 = (ov - cv) > 0 && (ov - cv) <= u 
-
-
 
 
 -- denormalization is the opposite of normalization, that is going

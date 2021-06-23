@@ -1,18 +1,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Factor where
 
-import Data.Function
 import qualified Data.Map as M
 import Text.Printf
-import Data.List hiding (filter)
 import Prelude hiding (filter)
-import Data.Tuple.OneTuple as T (only,OneTuple)
 import Data.Maybe
 
 import Record
 import Info
 import Dimension
--- import MDS hiding (compare)
 
 
 -- ========================== FACTORING =====================================
