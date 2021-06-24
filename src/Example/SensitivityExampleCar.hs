@@ -1,11 +1,14 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
-import Record
-import Info
-import Valuation
+module Example.SensitivityExampleCar where
+
+import Encoding.Record
+import Encoding.Info
+import Encoding.Valuation
 import Data.Tuple.OneTuple (OneTuple(..))
-import SensitivityAnalysis
-import SensDataType
+
+import Explanation.SensitivityAnalysis
+import Explanation.SensDataType
 
 
 data Car     = Honda | BMW | Toyota  deriving (Eq,Ord,Show,Enum,Bounded,Set)

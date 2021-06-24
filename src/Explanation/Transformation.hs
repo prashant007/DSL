@@ -1,17 +1,18 @@
 {-# LANGUAGE  FunctionalDependencies, FlexibleInstances #-}
 
-module Transformation where
+module Explanation.Transformation where
 
 import qualified Data.Map as M
 import Text.Printf
 import Prelude hiding (filter)
 
-import Record
-import Info
-import Valuation
-import Factor
-import Dimension
-import MDS hiding (compare)
+import Encoding.Record
+import Encoding.Info
+import Encoding.Valuation
+import Encoding.Dimension
+
+import Explanation.Factor
+import Explanation.MDS hiding (compare)
 
 -- ================== GENERALIZE ==========================================
 -- ========================================================================

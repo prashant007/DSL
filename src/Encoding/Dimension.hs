@@ -2,9 +2,9 @@
 {-# LANGUAGE  FunctionalDependencies #-}
 {-# LANGUAGE  FlexibleInstances      #-}
 
-module Dimension where
+module Encoding.Dimension where
 
-import Info 
+import Encoding.Info 
 
 import Data.Tuple.OneTuple (only,OneTuple(..))
 

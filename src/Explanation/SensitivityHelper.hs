@@ -3,16 +3,17 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module SensitivityHelper where
+module Explanation.SensitivityHelper where
 
 import Data.Tuple.OneTuple (OneTuple(..))
 import qualified Data.List as L 
 
-import Record
-import Info
-import Valuation hiding (val)
-import Dimension
-import SensDataType 
+import Encoding.Record
+import Encoding.Info
+import Encoding.Valuation hiding (val)
+import Encoding.Dimension
+
+import Explanation.SensDataType 
 
 -- mode true is percentage representation 
 mode :: Bool 

@@ -1,14 +1,14 @@
 {-# LANGUAGE FlexibleInstances #-}
-module Factor where
+module Explanation.Factor where
 
 import qualified Data.Map as M
 import Text.Printf
 import Prelude hiding (filter)
 import Data.Maybe
 
-import Record
-import Info
-import Dimension
+import Encoding.Record
+import Encoding.Info
+import Encoding.Dimension
 
 
 -- ========================== FACTORING =====================================

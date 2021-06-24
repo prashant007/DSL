@@ -1,15 +1,16 @@
 {-# LANGUAGE FunctionalDependencies,FlexibleInstances,FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables,UndecidableInstances,ConstraintKinds #-}
 
-module SensitivityAnalysis where
+module Explanation.SensitivityAnalysis where
 
-import Info
-import Valuation hiding (val)
-import MDS
-import Transformation
-import Dimension
-import SensDataType 
-import SensitivityHelper
+import Encoding.Info
+import Encoding.Valuation hiding (val)
+import Encoding.Dimension
+
+import Explanation.MDS
+import Explanation.Transformation
+import Explanation.SensDataType 
+import Explanation.SensitivityHelper
 
 
 class (Ord b,Set b,Set c,Covers a (Info b c),Valence c) =>

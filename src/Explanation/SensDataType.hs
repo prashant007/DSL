@@ -1,7 +1,7 @@
-module SensDataType where
+module Explanation.SensDataType where
 
 import qualified Data.Map as M 
-import Record
+import Encoding.Record
 
 data Change a = Change {unChange :: M.Map a (Maybe Double)}
 
@@ -31,12 +31,6 @@ showPairM _ _ (x,_)       = show x ++ " -> *"
      
 
 -- ============================================================================
--- class Limit a where
---     maxVal :: a -> Int
---     maxVal _ = maxBound
-
---     minVal :: a -> Int 
---     minVal _ = minBound 
 
 class Limit a where
     upperBound :: a -> Int
