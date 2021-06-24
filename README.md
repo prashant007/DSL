@@ -1,4 +1,4 @@
-# DSL
+# A DSL for explainable AHP
 A DSL for encoding AHP problems as well as generating explanations for the output that is generated (GPCE,2021).
 
 This package is an executable, i.e it can be used when installed. The installation step of the package are as follows:
