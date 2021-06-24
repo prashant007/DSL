@@ -17,7 +17,7 @@ build-type:          Simple
 extra-source-files:  CHANGELOG.md, README.md
 
 library
-  exposed-modules:   Explanation.SensitivityHelper, Explanation.SensitivityAnalysis, Explanation.SensDataType, Explanation.MDS, Explanation.Factor, Examples.SensitivityExampleCar, Examples.Car, Encoding.Valuation, Explanation.Transformation, Encoding.Record, Encoding.Info, Encoding.Dimension 
+  exposed-modules:   Examples.SensitivityExampleCar, Examples.Car, Explanation.SensitivityHelper, Explanation.SensitivityAnalysis, Explanation.SensDataType, Explanation.MDS, Explanation.Factor, Encoding.Valuation, Explanation.Transformation, Encoding.Record, Encoding.Info, Encoding.Dimension 
   -- other-modules:
   other-extensions:    ScopedTypeVariables, FlexibleInstances, ConstraintKinds, FlexibleContexts, FunctionalDependencies, UndecidableInstances, MultiParamTypeClasses, DeriveAnyClass
   build-depends:       base >=4.12 && <4.13, OneTuple >=0.2 && <0.3, containers >=0.6 && <0.7
