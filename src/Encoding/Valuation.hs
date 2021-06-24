@@ -34,7 +34,7 @@ instance Aggregate (Info o a) (Rec o) where
 --
 type Val o a = Info o a
 
-maxVal = 1
+maxVal = 100
 
 valuation :: (Ord o,Set a,Valence a) => Info o a -> Val o a
 valuation i = (transpose . mkInfo) $ map (attrNormRecPair i) members
