@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveAnyClass #-}
-module Example.Car where
+module Examples.Car where
 
 import qualified Data.Map.Strict as M
 import Data.Tuple.OneTuple (OneTuple(..))

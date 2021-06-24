@@ -15,7 +15,6 @@ class (Bounded a,Enum a,Ord a) => Set a where
   members :: [a]
   members = enumFromTo minBound maxBound
 
-
 -- Tagged numbers
 --
 type Nums a = [(a,Double)]

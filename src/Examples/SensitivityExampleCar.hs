@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
-module Example.SensitivityExampleCar where
+module Examples.SensitivityExampleCar where
 
 import Encoding.Record
 import Encoding.Info
