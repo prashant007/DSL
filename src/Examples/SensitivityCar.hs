@@ -68,22 +68,23 @@ cars :: Val Car (Feature,Opinion,Weight)
 cars = carOpinions `extendBy` weights
 
 carData = (carFeatures,featureOpinions,weights)
-c11HB = sensitivity carData (Honda,BMW) Price 
-c12HB = sensitivity carData (Honda,BMW) MPG   
-c13HB = sensitivity carData (Honda,BMW) Safety 
 
-c11THD= sensDefault carData cars Price  
-c12THD= sensDefault carData cars MPG 
-c13THD= sensDefault carData cars Safety 
+sensPrice = sensitivity carData (Honda,BMW) Price 
+sensMPG   = sensitivity carData (Honda,BMW) MPG   
+sensSafety= sensitivity carData (Honda,BMW) Safety 
 
-c11TH = sensitivity carData (Toyota,Honda) Price 
-c12TH = sensitivity carData (Toyota,Honda) MPG   
-c13TH = sensitivity carData (Toyota,Honda) Safety
+sensPrice' = sensDefault carData cars Price  
+sensMPG'   = sensDefault carData cars MPG 
+sensSafety'= sensDefault carData cars Safety 
 
-c21HB  = sensitivity carData (Honda,BMW) Personal 
-c22HB  = sensitivity carData (Honda,BMW) Expert 
-c21TH  = sensitivity carData (Toyota,Honda) Personal 
-c22TH  = sensitivity carData (Toyota,Honda) Expert 
+sensPrice_TH  = sensitivity carData (Toyota,Honda) Price 
+sensMPG_TH    = sensitivity carData (Toyota,Honda) MPG   
+sensSafety_TH = sensitivity carData (Toyota,Honda) Safety
+
+sensPersonal= sensitivity carData (Honda,BMW) Personal 
+sensExpert  = sensitivity carData (Honda,BMW) Expert 
+sensPersonal_TH = sensitivity carData (Toyota,Honda) Personal 
+sensExpert_TH   = sensitivity carData (Toyota,Honda) Expert 
 
 c3TH   = sensDefault carData cars Weighted 
 c3HB   = sensitivity carData (Honda,BMW) Weighted 
