@@ -7,7 +7,8 @@ This package is an executable, i.e it can be used when installed. The installati
 2) Execute "cabal configure"
 3) Execute "cabal install" 
 4) The package is now installed and can be used in a Haskell file like a normal import. For example - if we wanted to use the functions for MDS explanations (Explanation.MDS) then we can import it as shown below:
-import Explanation.MDS
+
+    import Explanation.MDS
 
 ===================================================
 
