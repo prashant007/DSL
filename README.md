@@ -12,5 +12,5 @@ This package is an executable, i.e it can be used when installed. The installati
 
 ===================================================
 
-The file Car.hs shows an encoding of an AHP problem pertaining to the decision of buying of a car. It also shows how to generate an explanation for the decision output by the AHP. The file SensitivityExampleCar.hs illustrates the functions for sensitivity analysis of the same problem. A description of the functionalities of the DSL using the car example is provided in the wiki page of the DSL. 
+The file Car.hs shows an encoding of an AHP problem pertaining to the decision of buying of a car. It also shows how to generate an explanation for the decision output by the AHP. The file SensitivityCar.hs illustrates the functions for sensitivity analysis of the same problem. A description of the functionalities of the DSL using the car example is provided in the wiki page of the DSL. 
 
